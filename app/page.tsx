@@ -114,7 +114,7 @@ export default function Home(): JSX.Element {
       </main>
 
       <footer className="bg-black text-white text-center py-4">
-        &copy; 2025 My TV Streaming. All rights reserved.
+        &copy; 2025 Mahaa Digital. All rights reserved.
       </footer>
 
       <div
