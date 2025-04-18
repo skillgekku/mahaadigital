@@ -1,103 +1,128 @@
+'use client';
+
+import { JSX, useEffect } from "react";
 import Image from "next/image";
+import Hls from "hls.js";
 
-export default function Home() {
+const streams: Record<string, string> = {
+  stream1: "http://tv.mahaadigital.com:8080/hls/test.m3u8",
+  stream2: "http://tv.mahaadigital.com:8081/hls/test.m3u8",
+  stream3: "http://tv.mahaadigital.com:8082/hls/test.m3u8",
+};
+
+export default function Home(): JSX.Element {
+  useEffect(() => {
+    const handleFullScreenExit = () => {
+      const overlay = document.getElementById("overlay") as HTMLElement;
+      const video = document.getElementById("fullscreenVideo") as HTMLVideoElement;
+      if (
+        !document.fullscreenElement &&
+        !document.fullscreenElement &&
+        !document.fullscreenElement &&
+        !document.fullscreenElement
+      ) {
+        overlay.style.display = "none";
+        video.pause();
+        if ((window as any).hlsInstance) {
+          (window as any).hlsInstance.destroy();
+          (window as any).hlsInstance = null;
+        }
+      }
+    };
+
+    document.addEventListener("fullscreenchange", handleFullScreenExit);
+    document.addEventListener("webkitfullscreenchange", handleFullScreenExit);
+    document.addEventListener("mozfullscreenchange", handleFullScreenExit);
+    document.addEventListener("MSFullscreenChange", handleFullScreenExit);
+
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullScreenExit);
+      document.removeEventListener("webkitfullscreenchange", handleFullScreenExit);
+      document.removeEventListener("mozfullscreenchange", handleFullScreenExit);
+      document.removeEventListener("MSFullscreenChange", handleFullScreenExit);
+    };
+  }, []);
+
+  const openFullScreenPlayer = (streamKey: string): void => {
+    const overlay = document.getElementById("overlay") as HTMLElement;
+    const video = document.getElementById("fullscreenVideo") as HTMLVideoElement;
+    const sourceUrl = streams[streamKey];
+
+    overlay.style.display = "block";
+
+    if ((window as any).hlsInstance) {
+      (window as any).hlsInstance.destroy();
+      (window as any).hlsInstance = null;
+    }
+
+    if (Hls.isSupported()) {
+      (window as any).hlsInstance = new Hls();
+      (window as any).hlsInstance.loadSource(sourceUrl);
+      (window as any).hlsInstance.attachMedia(video);
+    } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+      video.src = sourceUrl;
+    } else {
+      alert("Your browser does not support HLS playback.");
+      overlay.style.display = "none";
+      return;
+    }
+
+    requestVideoFullscreen(video);
+    video.play();
+  };
+
+  const requestVideoFullscreen = (videoElement: HTMLVideoElement): void => {
+    if (videoElement.requestFullscreen) {
+      videoElement.requestFullscreen();
+    } else if ((videoElement as any).webkitRequestFullscreen) {
+      (videoElement as any).webkitRequestFullscreen();
+    } else if ((videoElement as any).msRequestFullscreen) {
+      (videoElement as any).msRequestFullscreen();
+    }
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="flex flex-col min-h-screen">
+      <nav className="bg-black text-white py-4 px-8 text-xl font-bold">
+        Mahaa Streaming
+      </nav>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      <main className="flex-grow px-4 py-10">
+        <h1 className="text-center text-3xl font-semibold">Select Channel</h1>
+        <p className="text-center text-gray-600 mb-8">Watch in fullscreen</p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
+          {["Mahaa News", "Mahaa Bhakti", "Mahaa Max"].map((channel, idx) => (
+            <div
+              key={channel}
+              className="cursor-pointer border shadow-lg w-72"
+              onClick={() => openFullScreenPlayer(`stream${idx + 1}`)}
+            >
+              <Image
+                src={`https://raw.githubusercontent.com/skillgekku/media-assets/refs/heads/main/${["news", "baks", "max"][idx]}.png`}
+                alt={channel}
+                width={288}
+                height={192}
+                className="w-full h-48 object-cover"
+              />
+              <div className="text-center py-4 font-medium text-lg">
+                {channel}
+              </div>
+            </div>
+          ))}
         </div>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+
+      <footer className="bg-black text-white text-center py-4">
+        &copy; 2025 My TV Streaming. All rights reserved.
       </footer>
+
+      <div
+        id="overlay"
+        className="fixed inset-0 bg-black z-50 hidden flex items-center justify-center"
+      >
+        <video id="fullscreenVideo" controls className="w-full h-full object-cover" />
+      </div>
     </div>
   );
 }
