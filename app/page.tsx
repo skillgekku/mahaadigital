@@ -9,7 +9,7 @@ const streams: Record<string, string> = {
   stream2: "http://tv.mahaadigital.com:8081/hls/test.m3u8",
   stream3: "http://tv.mahaadigital.com:8082/hls/test.m3u8",
 };
-
+// commit 
 export default function Home(): JSX.Element {
   useEffect(() => {
     const handleFullScreenExit = () => {
