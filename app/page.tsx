@@ -5,9 +5,9 @@ import Image from "next/image";
 import Hls from "hls.js";
 
 const streams: Record<string, string> = {
-  stream1: "http://tv.mahaadigital.com:8080/hls/test.m3u8",
-  stream2: "http://tv.mahaadigital.com:8081/hls/test.m3u8",
-  stream3: "http://tv.mahaadigital.com:8082/hls/test.m3u8",
+  stream1: "https://news.mahaaone.com/hls/test.m3u8",
+  stream2: "https://bhakti.mahaaone.com/hls/test.m3u8",
+  stream3: "https://max.mahaaone.com/hls/test.m3u8",
 };
 // commit 
 export default function Home(): JSX.Element {
