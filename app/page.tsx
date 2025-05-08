@@ -84,7 +84,7 @@ export default function Home(): JSX.Element {
   return (
     <div className="flex flex-col min-h-screen">
       <nav className="bg-black text-white py-4 px-8 text-xl font-bold">
-        Mahaa Streaming
+        Mahaa Live TV
       </nav>
 
       <main className="flex-grow px-4 py-10">
