@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Mahaa Digital",
-  description: "Online Streaming Platform",
+  description: "Online Live TV Platform",
 };
 
 export default function RootLayout({

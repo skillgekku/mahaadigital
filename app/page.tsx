@@ -84,7 +84,7 @@ export default function Home(): JSX.Element {
   return (
     <div className="flex flex-col min-h-screen">
       <nav className="bg-black text-white py-4 px-8 text-xl font-bold">
-        Mahaa Live TV
+        Mahaa LIVE TV
       </nav>
 
       <main className="flex-grow px-4 py-10">
@@ -92,22 +92,29 @@ export default function Home(): JSX.Element {
         <p className="text-center text-gray-600 mb-8">Watch in fullscreen</p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
-          {["Mahaa News", "Mahaa Bhakti", "Mahaa Max"].map((channel, idx) => (
+          {[
+            { name: "Mahaa News", description: "24*7 News Channel" },
+            { name: "Mahaa Bhakti", description: "24*7 Devotional" },
+            { name: "Mahaa Max", description: "Unlimited Entertainment" },
+          ].map((channel, idx) => (
             <div
-              key={channel}
+              key={channel.name}
               className="cursor-pointer border shadow-lg w-72"
               onClick={() => openFullScreenPlayer(`stream${idx + 1}`)}
             >
               <Image
                 src={`https://raw.githubusercontent.com/skillgekku/media-assets/refs/heads/main/${["news", "baks", "max"][idx]}.png`}
-                alt={channel}
+                alt={channel.name}
                 width={288}
                 height={192}
                 className="w-full h-48 object-cover"
               />
               <div className="text-center py-4 font-medium text-lg">
-                {channel}
+                {channel.name}
               </div>
+                <div className="text-center text-gray-500 text-base font-bold">
+                {channel.description}
+                </div>
             </div>
           ))}
         </div>
