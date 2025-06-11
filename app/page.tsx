@@ -6,9 +6,9 @@ import Hls from "hls.js";
 import ChannelsSchedule from "./ChannelsSchedule";
 
 const streams: Record<string, string> = {
-  stream1: "https://news.mahaaone.com/hls/test.m3u8",
+  stream1: "https://distro.legitpro.co.in/mahaanews/index.m3u8",
   stream2: "https://bhakti.mahaaone.com/hls/test.m3u8",
-  stream3: "https://max.mahaaone.com/hls/test.m3u8",
+  stream3: "https://distro.legitpro.co.in/mahaamaxx/index.m3u8",
   stream4: "youtube", // Special identifier for YouTube content
 };
 
