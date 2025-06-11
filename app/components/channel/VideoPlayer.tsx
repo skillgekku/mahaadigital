@@ -35,11 +35,32 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
   
   // Refs
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<any>(null);
-  const controlsTimeoutRef = useRef<NodeJS.Timeout>();
+  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Track window size for responsive design
+  useEffect(() => {
+    const updateWindowSize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    };
+
+    updateWindowSize();
+    window.addEventListener('resize', updateWindowSize);
+    window.addEventListener('orientationchange', updateWindowSize);
+
+    return () => {
+      window.removeEventListener('resize', updateWindowSize);
+      window.removeEventListener('orientationchange', updateWindowSize);
+    };
+  }, []);
 
   // Update current time every minute
   useEffect(() => {
@@ -254,12 +275,12 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
       return;
     }
     
-    const video = videoRef.current;
-    if (!video) return;
+    const container = containerRef.current;
+    if (!container) return;
 
     if (!isFullscreen) {
-      if (video.requestFullscreen) {
-        video.requestFullscreen().catch(console.warn);
+      if (container.requestFullscreen) {
+        container.requestFullscreen().catch(console.warn);
       }
     } else {
       if (document.exitFullscreen) {
@@ -402,21 +423,40 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
     }
   };
 
+  // Calculate responsive dimensions
+  const isMobile = windowSize.width < 768;
+  const topBarHeight = isMobile ? '60px' : '80px';
+  const bottomControlsHeight = channel.isYoutube ? '60px' : (isMobile ? '80px' : '100px');
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black z-50 flex flex-col">
+    <div 
+      ref={containerRef}
+      className="fixed inset-0 bg-black z-50 flex flex-col overflow-hidden"
+      style={{ 
+        width: '100vw', 
+        height: '100vh',
+        maxWidth: '100vw',
+        maxHeight: '100vh'
+      }}
+    >
       {/* Top Bar */}
-      <div className={`flex justify-between items-center p-4 bg-black bg-opacity-70 text-white z-10 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
-        <div>
-          <h3 className="text-xl font-bold">{channel.name}</h3>
-          <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-            <span className="text-red-400 text-sm">{channel.isYoutube ? 'YOUTUBE' : 'LIVE'}</span>
+      <div 
+        className={`flex justify-between items-center px-3 md:px-4 py-2 md:py-4 bg-black bg-opacity-70 text-white z-10 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'} shrink-0`}
+        style={{ height: topBarHeight }}
+      >
+        <div className="flex-1 min-w-0">
+          <h3 className="text-lg md:text-xl font-bold truncate">{channel.name}</h3>
+          <div className="flex items-center space-x-2 overflow-hidden">
+            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shrink-0"></div>
+            <span className="text-red-400 text-xs md:text-sm shrink-0">
+              {channel.isYoutube ? 'YOUTUBE' : 'LIVE'}
+            </span>
             {isPiPMode && !channel.isYoutube && (
-              <span className="text-blue-400 text-sm">• PiP Active</span>
+              <span className="text-blue-400 text-xs md:text-sm shrink-0">• PiP Active</span>
             )}
-            <span className="text-gray-400 text-sm">
+            <span className="text-gray-400 text-xs md:text-sm truncate">
               • {currentTime.toLocaleTimeString('en-US', { 
                 hour: '2-digit', 
                 minute: '2-digit',
@@ -425,30 +465,35 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
             </span>
           </div>
         </div>
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-1 md:space-x-3 shrink-0 ml-2">
           {isPiPSupported && !channel.isYoutube && (
             <button
               onClick={togglePiP}
-              className="text-white hover:text-blue-400 transition-colors p-2 rounded-lg hover:bg-white hover:bg-opacity-10"
+              className="text-white hover:text-blue-400 transition-colors p-1.5 md:p-2 rounded-lg hover:bg-white hover:bg-opacity-10"
               title="Picture-in-Picture (P)"
             >
-              <Minimize className="w-5 h-5" />
+              <Minimize className="w-4 h-4 md:w-5 md:h-5" />
             </button>
           )}
           <button
             onClick={handleClose}
-            className="text-white hover:text-red-400 transition-colors p-2 rounded-lg hover:bg-white hover:bg-opacity-10"
+            className="text-white hover:text-red-400 transition-colors p-1.5 md:p-2 rounded-lg hover:bg-white hover:bg-opacity-10"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
           </button>
         </div>
       </div>
 
       {/* Video Container */}
       <div 
-        className="flex-1 relative bg-black"
+        className="flex-1 relative bg-black min-h-0 overflow-hidden"
         onMouseMove={resetControlsTimeout}
         onMouseEnter={resetControlsTimeout}
+        onTouchStart={resetControlsTimeout}
+        style={{
+          height: `calc(100vh - ${topBarHeight} - ${bottomControlsHeight})`,
+          minHeight: '200px'
+        }}
       >
         {/* YouTube Content */}
         {channel.isYoutube && (
@@ -461,7 +506,12 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
-              className="w-full h-full"
+              className="w-full h-full max-w-full max-h-full"
+              style={{
+                aspectRatio: '16/9',
+                maxWidth: '100%',
+                maxHeight: '100%'
+              }}
             />
           </div>
         )}
@@ -472,9 +522,9 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
             {/* Loading */}
             {isLoading && (
               <div className="absolute inset-0 flex items-center justify-center bg-black z-20">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-red-500 mx-auto mb-4"></div>
-                  <p className="text-white text-lg">Loading {channel.name}...</p>
+                <div className="text-center px-4">
+                  <div className="animate-spin rounded-full h-12 w-12 md:h-16 md:w-16 border-b-2 border-red-500 mx-auto mb-4"></div>
+                  <p className="text-white text-base md:text-lg">Loading {channel.name}...</p>
                   <p className="text-gray-400 text-sm mt-2">Connecting to stream...</p>
                 </div>
               </div>
@@ -482,21 +532,21 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
 
             {/* Error */}
             {error && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black z-20">
-                <div className="text-center bg-gray-800 p-8 rounded-lg border border-red-500 max-w-md mx-4">
-                  <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-                  <p className="text-white text-xl mb-4">Playback Error</p>
-                  <p className="text-gray-300 mb-6">{error}</p>
+              <div className="absolute inset-0 flex items-center justify-center bg-black z-20 p-4">
+                <div className="text-center bg-gray-800 p-4 md:p-8 rounded-lg border border-red-500 max-w-md w-full">
+                  <AlertCircle className="w-8 h-8 md:w-12 md:h-12 text-red-500 mx-auto mb-4" />
+                  <p className="text-white text-lg md:text-xl mb-4">Playback Error</p>
+                  <p className="text-gray-300 mb-6 text-sm md:text-base">{error}</p>
                   <div className="space-y-3">
                     <button 
                       onClick={handleRetry}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors"
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 md:px-6 py-2 md:py-3 rounded-lg transition-colors text-sm md:text-base"
                     >
                       Retry
                     </button>
                     <button 
                       onClick={handleClose}
-                      className="w-full bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg transition-colors"
+                      className="w-full bg-red-600 hover:bg-red-700 text-white px-4 md:px-6 py-2 md:py-3 rounded-lg transition-colors text-sm md:text-base"
                     >
                       Close Player
                     </button>
@@ -508,10 +558,14 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
             {/* Video Element */}
             <video
               ref={videoRef}
-              className="w-full h-full object-contain"
+              className="w-full h-full object-contain max-w-full max-h-full"
               controls={false}
               playsInline
               onError={() => setError('Video playback error occurred')}
+              style={{
+                display: 'block',
+                margin: '0 auto'
+              }}
             />
           </>
         )}
@@ -519,28 +573,31 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
 
       {/* Bottom Controls - Only show for non-YouTube content */}
       {!channel.isYoutube && (
-        <div className={`p-4 bg-black bg-opacity-70 text-white transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+        <div 
+          className={`px-3 md:px-4 py-2 md:py-4 bg-black bg-opacity-70 text-white transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'} shrink-0`}
+          style={{ height: bottomControlsHeight }}
+        >
+          <div className="flex items-center justify-between h-full">
+            <div className="flex items-center space-x-2 md:space-x-4 flex-1 min-w-0">
               <button
                 onClick={togglePlayPause}
-                className="text-white hover:text-red-400 transition-colors p-2 rounded-lg hover:bg-white hover:bg-opacity-10"
+                className="text-white hover:text-red-400 transition-colors p-1.5 md:p-2 rounded-lg hover:bg-white hover:bg-opacity-10 shrink-0"
                 disabled={isLoading || !!error}
                 title="Play/Pause (Space)"
               >
-                {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
+                {isPlaying ? <Pause className="w-5 h-5 md:w-6 md:h-6" /> : <Play className="w-5 h-5 md:w-6 md:h-6" />}
               </button>
               
               <button
                 onClick={toggleMute}
-                className="text-white hover:text-red-400 transition-colors p-2 rounded-lg hover:bg-white hover:bg-opacity-10"
+                className="text-white hover:text-red-400 transition-colors p-1.5 md:p-2 rounded-lg hover:bg-white hover:bg-opacity-10 shrink-0"
                 disabled={isLoading || !!error}
                 title="Mute/Unmute (M)"
               >
-                {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                {isMuted ? <VolumeX className="w-4 h-4 md:w-5 md:h-5" /> : <Volume2 className="w-4 h-4 md:w-5 md:h-5" />}
               </button>
               
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 min-w-0 flex-1 max-w-32">
                 <input
                   type="range"
                   min="0"
@@ -548,38 +605,38 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
                   step="0.1"
                   value={isMuted ? 0 : volume}
                   onChange={handleVolumeChange}
-                  className="w-20 accent-red-500"
+                  className="flex-1 accent-red-500 min-w-0"
                   disabled={isLoading || !!error}
                 />
-                <span className="text-white text-sm w-8">
+                <span className="text-white text-xs md:text-sm w-6 md:w-8 shrink-0 text-center">
                   {Math.round((isMuted ? 0 : volume) * 100)}
                 </span>
               </div>
             </div>
 
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-1 md:space-x-4 shrink-0 ml-2">
               {isPiPSupported && (
                 <button
                   onClick={togglePiP}
-                  className={`hover:text-blue-400 transition-colors p-2 rounded-lg hover:bg-white hover:bg-opacity-10 ${isPiPMode ? 'text-blue-400' : 'text-white'}`}
+                  className={`hover:text-blue-400 transition-colors p-1.5 md:p-2 rounded-lg hover:bg-white hover:bg-opacity-10 ${isPiPMode ? 'text-blue-400' : 'text-white'}`}
                   disabled={isLoading || !!error}
                   title="Picture-in-Picture (P)"
                 >
-                  <Minimize className="w-5 h-5" />
+                  <Minimize className="w-4 h-4 md:w-5 md:h-5" />
                 </button>
               )}
               <button
                 onClick={toggleFullscreen}
-                className="text-white hover:text-red-400 transition-colors p-2 rounded-lg hover:bg-white hover:bg-opacity-10"
+                className="text-white hover:text-red-400 transition-colors p-1.5 md:p-2 rounded-lg hover:bg-white hover:bg-opacity-10"
                 disabled={isLoading || !!error}
                 title="Fullscreen (F)"
               >
-                <Maximize className="w-5 h-5" />
+                <Maximize className="w-4 h-4 md:w-5 md:h-5" />
               </button>
             </div>
           </div>
           
-          <div className="mt-2 text-gray-400 text-xs">
+          <div className="mt-1 md:mt-2 text-gray-400 text-xs hidden md:block">
             Space: Play/Pause • M: Mute • F: Fullscreen • {isPiPSupported ? 'P: Picture-in-Picture • ' : ''}Esc: Exit
           </div>
         </div>
@@ -587,8 +644,11 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
 
       {/* YouTube Controls Info */}
       {channel.isYoutube && (
-        <div className={`p-4 bg-black bg-opacity-70 text-white transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
-          <div className="text-center text-gray-400 text-sm">
+        <div 
+          className={`px-3 md:px-4 py-2 md:py-4 bg-black bg-opacity-70 text-white transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'} shrink-0`}
+          style={{ height: bottomControlsHeight }}
+        >
+          <div className="text-center text-gray-400 text-xs md:text-sm flex items-center justify-center h-full">
             Use YouTube player controls for playback, volume, and fullscreen options
           </div>
         </div>
