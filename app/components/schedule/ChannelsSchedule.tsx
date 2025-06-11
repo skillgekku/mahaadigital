@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Clock, Calendar, Play, Star, ArrowLeft } from 'lucide-react';
+import { Clock, Calendar, Play, Star, ArrowLeft, Youtube } from 'lucide-react';
+import { CHANNELS, MAHAA_USA_PLAYLIST, YouTubeVideo } from '@/app/lib/constants';
 
 interface Program {
   time: string;
@@ -22,14 +23,16 @@ interface ChannelConfig {
   color: string;
   bgGradient: string;
   icon: string;
+  isYoutube?: boolean;
 }
 
 interface ChannelsScheduleProps {
   channelIndex?: number;
   onBack?: () => void;
+  onPlayVideo?: (videoId: string) => void;
 }
 
-export default function ChannelsSchedule({ channelIndex = 0, onBack }: ChannelsScheduleProps) {
+export default function ChannelsSchedule({ channelIndex = 0, onBack, onPlayVideo }: ChannelsScheduleProps) {
   const [selectedDay, setSelectedDay] = useState(0);
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -69,12 +72,50 @@ export default function ChannelsSchedule({ channelIndex = 0, onBack }: ChannelsS
       description: 'US Telugu Content',
       color: 'green',
       bgGradient: 'from-green-600 to-green-800',
-      icon: '🇺🇸'
+      icon: '🇺🇸',
+      isYoutube: true
     }
   ];
 
-  // Schedule data for each channel
-  const allScheduleData: ScheduleDay[][] = [
+  // Convert YouTube playlist to schedule format for Mahaa USA
+  const getYouTubeSchedule = (): ScheduleDay[] => {
+    const today = new Date();
+    const tomorrow = new Date(today.getTime() + 86400000);
+    
+    const todayPrograms: Program[] = MAHAA_USA_PLAYLIST.map(video => ({
+      time: video.scheduledTime || '00:00',
+      title: video.title,
+      genre: video.category,
+      duration: video.duration,
+      rating: 4.5, // Default rating
+      isLive: false
+    })).sort((a, b) => a.time.localeCompare(b.time));
+
+    const tomorrowPrograms: Program[] = MAHAA_USA_PLAYLIST.map(video => ({
+      time: video.scheduledTime || '00:00',
+      title: `${video.title} (Repeat)`,
+      genre: video.category,
+      duration: video.duration,
+      rating: 4.5,
+      isLive: false
+    })).sort((a, b) => a.time.localeCompare(b.time));
+
+    return [
+      {
+        day: 'Today',
+        date: today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        programs: todayPrograms
+      },
+      {
+        day: 'Tomorrow',
+        date: tomorrow.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        programs: tomorrowPrograms
+      }
+    ];
+  };
+
+  // Regular schedule data for other channels
+  const getRegularSchedule = (): ScheduleDay[][] => [
     // Mahaa News Schedule
     [
       {
@@ -177,46 +218,48 @@ export default function ChannelsSchedule({ channelIndex = 0, onBack }: ChannelsS
           { time: '15:30', title: 'Musical Night', genre: 'Music Show', duration: '120 min', rating: 4.7, isLive: false }
         ]
       }
-    ],
-    // Mahaa USA Schedule
-    [
-      {
-        day: 'Today',
-        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        programs: [
-          { time: '06:00', title: 'Morning News USA', genre: 'News', duration: '60 min', rating: 4.8, isLive: false },
-          { time: '07:00', title: 'Telugu Breakfast Show', genre: 'Talk Show', duration: '90 min', rating: 4.5, isLive: false },
-          { time: '08:30', title: 'Cultural Connect', genre: 'Cultural', duration: '30 min', rating: 4.2, isLive: false },
-          { time: '09:00', title: 'Business Hour', genre: 'Business', duration: '60 min', rating: 4.0, isLive: false },
-          { time: '10:00', title: 'Health & Wellness', genre: 'Lifestyle', duration: '30 min', rating: 4.3, isLive: false },
-          { time: '10:30', title: 'Immigration Talk', genre: 'Educational', duration: '60 min', rating: 4.6, isLive: true },
-          { time: '11:30', title: 'Community Spotlight', genre: 'Documentary', duration: '30 min', rating: 4.1, isLive: false },
-          { time: '12:00', title: 'Lunch Break Special', genre: 'Variety', duration: '60 min', rating: 4.4, isLive: false },
-          { time: '13:00', title: 'USA Telugu Cinema', genre: 'Movie', duration: '180 min', rating: 4.7, isLive: false },
-          { time: '16:00', title: 'Kids Zone USA', genre: 'Children', duration: '60 min', rating: 4.5, isLive: false },
-          { time: '17:00', title: 'Evening Headlines', genre: 'News', duration: '30 min', rating: 4.6, isLive: false },
-          { time: '17:30', title: 'Tech Talk America', genre: 'Technology', duration: '60 min', rating: 4.3, isLive: false },
-          { time: '18:30', title: 'Cooking with Amma', genre: 'Cooking', duration: '30 min', rating: 4.8, isLive: false },
-          { time: '19:00', title: 'Prime Time News', genre: 'News', duration: '60 min', rating: 4.9, isLive: false },
-          { time: '20:00', title: 'Music Nights USA', genre: 'Music', duration: '90 min', rating: 4.6, isLive: false },
-          { time: '21:30', title: 'Late Night Comedy', genre: 'Comedy', duration: '60 min', rating: 4.4, isLive: false }
-        ]
-      },
-      {
-        day: 'Tomorrow',
-        date: new Date(Date.now() + 86400000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        programs: [
-          { time: '06:00', title: 'Weekend Morning Show', genre: 'Variety', duration: '120 min', rating: 4.5, isLive: false },
-          { time: '08:00', title: 'Family Time', genre: 'Family', duration: '60 min', rating: 4.7, isLive: false },
-          { time: '09:00', title: 'Travel Diaries USA', genre: 'Travel', duration: '60 min', rating: 4.3, isLive: false },
-          { time: '10:00', title: 'Real Estate Hour', genre: 'Business', duration: '60 min', rating: 4.1, isLive: false },
-          { time: '11:00', title: 'Sports Center USA', genre: 'Sports', duration: '90 min', rating: 4.6, isLive: false }
-        ]
-      }
     ]
   ];
 
+  // Get the appropriate schedule based on channel
+  const getCurrentSchedule = (): ScheduleDay[] => {
+    if (channelIndex === 3) { // Mahaa USA
+      return getYouTubeSchedule();
+    }
+    return getRegularSchedule()[channelIndex];
+  };
+
+  // Get current program for YouTube playlist
+  const getCurrentYouTubeProgram = () => {
+    if (channelIndex !== 3 || selectedDay !== 0) return null;
+    
+    const now = currentTime;
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const currentTimeStr = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`;
+    
+    const todayPrograms = getCurrentSchedule()[0].programs;
+    
+    for (let i = 0; i < todayPrograms.length; i++) {
+      const program = todayPrograms[i];
+      const nextProgram = todayPrograms[i + 1];
+      
+      if (!nextProgram) {
+        if (currentTimeStr >= program.time) return program;
+      } else {
+        if (currentTimeStr >= program.time && currentTimeStr < nextProgram.time) {
+          return program;
+        }
+      }
+    }
+    return null;
+  };
+
   const getCurrentProgram = () => {
+    if (channelIndex === 3) { // Mahaa USA
+      return getCurrentYouTubeProgram();
+    }
+    
     if (selectedDay !== 0) return null;
     
     const now = currentTime;
@@ -224,7 +267,7 @@ export default function ChannelsSchedule({ channelIndex = 0, onBack }: ChannelsS
     const currentMinute = now.getMinutes();
     const currentTimeStr = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`;
     
-    const todayPrograms = allScheduleData[channelIndex][0].programs;
+    const todayPrograms = getCurrentSchedule()[0].programs;
     
     for (let i = 0; i < todayPrograms.length; i++) {
       const program = todayPrograms[i];
@@ -302,8 +345,14 @@ export default function ChannelsSchedule({ channelIndex = 0, onBack }: ChannelsS
       'Competition': 'bg-orange-500',
       'Music Show': 'bg-violet-600',
       
-      // USA Channel Colors
-      'Cultural': 'bg-orange-500',
+      // USA Channel Colors (YouTube Categories)
+      'Conference': 'bg-blue-600',
+      'Youth Event': 'bg-green-600',
+      'Political': 'bg-red-600',
+      'Awards': 'bg-yellow-600',
+      'Entertainment': 'bg-purple-600',
+      'Pageant': 'bg-pink-600',
+      'Cultural': 'bg-teal-500',
       'Lifestyle': 'bg-purple-500',
       'Educational': 'bg-indigo-500',
       'Variety': 'bg-pink-500',
@@ -314,8 +363,19 @@ export default function ChannelsSchedule({ channelIndex = 0, onBack }: ChannelsS
     return colors[genre] || 'bg-gray-500';
   };
 
+  // Handle YouTube video play
+  const handlePlayYouTubeVideo = (program: Program) => {
+    if (channelIndex === 3 && onPlayVideo) { // Mahaa USA
+      // Find the corresponding YouTube video
+      const video = MAHAA_USA_PLAYLIST.find(v => v.title === program.title.replace(' (Repeat)', ''));
+      if (video) {
+        onPlayVideo(video.youtubeId);
+      }
+    }
+  };
+
   const currentChannel = channels[channelIndex];
-  const currentSchedule = allScheduleData[channelIndex];
+  const currentSchedule = getCurrentSchedule();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black p-6">
@@ -339,6 +399,12 @@ export default function ChannelsSchedule({ channelIndex = 0, onBack }: ChannelsS
               <p className="text-gray-100 flex items-center space-x-2">
                 <Calendar className="w-4 h-4" />
                 <span>{currentChannel.description} - Program Schedule</span>
+                {currentChannel.isYoutube && (
+                  <>
+                    <Youtube className="w-4 h-4" />
+                    <span>YouTube Playlist</span>
+                  </>
+                )}
               </p>
             </div>
           </div>
@@ -386,7 +452,9 @@ export default function ChannelsSchedule({ channelIndex = 0, onBack }: ChannelsS
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
                 <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse"></div>
-                <span className="text-red-500 font-semibold">NOW PLAYING</span>
+                <span className="text-red-500 font-semibold">
+                  {currentChannel.isYoutube ? 'NOW STREAMING' : 'NOW PLAYING'}
+                </span>
               </div>
               <div>
                 <h3 className="text-xl font-bold text-white">
@@ -405,11 +473,25 @@ export default function ChannelsSchedule({ channelIndex = 0, onBack }: ChannelsS
                       {getCurrentProgram()?.rating}
                     </span>
                   </div>
+                  {currentChannel.isYoutube && (
+                    <div className="flex items-center space-x-1">
+                      <Youtube className="w-4 h-4 text-red-500" />
+                      <span className="text-xs text-red-400">YouTube</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
-            <button className={`bg-gradient-to-r ${currentChannel.bgGradient} hover:opacity-90 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-all`}>
+            <button 
+              onClick={() => {
+                if (currentChannel.isYoutube && getCurrentProgram()) {
+                  handlePlayYouTubeVideo(getCurrentProgram()!);
+                }
+              }}
+              className={`bg-gradient-to-r ${currentChannel.bgGradient} hover:opacity-90 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-all`}
+            >
               <Play className="w-4 h-4" />
+              <span>{currentChannel.isYoutube ? 'Stream' : 'Watch'}</span>
             </button>
           </div>
         </div>
@@ -420,6 +502,12 @@ export default function ChannelsSchedule({ channelIndex = 0, onBack }: ChannelsS
         <h2 className="text-2xl font-bold text-white mb-6 flex items-center space-x-2">
           <Clock className="w-6 h-6" />
           <span>{currentSchedule[selectedDay].day}'s Schedule</span>
+          {currentChannel.isYoutube && (
+            <div className="flex items-center space-x-2 ml-4">
+              <Youtube className="w-5 h-5 text-red-500" />
+              <span className="text-sm text-red-400">YouTube Playlist</span>
+            </div>
+          )}
         </h2>
         
         <div className="space-y-3">
@@ -456,8 +544,11 @@ export default function ChannelsSchedule({ channelIndex = 0, onBack }: ChannelsS
                       )}
                       {isCurrentProgram(program) && (
                         <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full font-medium">
-                          ON AIR
+                          {currentChannel.isYoutube ? 'STREAMING' : 'ON AIR'}
                         </span>
+                      )}
+                      {currentChannel.isYoutube && (
+                        <Youtube className="w-4 h-4 text-red-500" />
                       )}
                     </div>
                     
@@ -477,13 +568,27 @@ export default function ChannelsSchedule({ channelIndex = 0, onBack }: ChannelsS
                 
                 <div className="flex items-center space-x-2">
                   {isCurrentProgram(program) ? (
-                    <button className={`bg-gradient-to-r ${currentChannel.bgGradient} hover:opacity-90 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-all`}>
+                    <button 
+                      onClick={() => {
+                        if (currentChannel.isYoutube) {
+                          handlePlayYouTubeVideo(program);
+                        }
+                      }}
+                      className={`bg-gradient-to-r ${currentChannel.bgGradient} hover:opacity-90 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-all`}
+                    >
                       <Play className="w-4 h-4" />
-                      <span>Watch</span>
+                      <span>{currentChannel.isYoutube ? 'Stream' : 'Watch'}</span>
                     </button>
                   ) : (
-                    <button className="bg-gray-600 hover:bg-gray-500 text-gray-300 px-4 py-2 rounded-lg transition-colors">
-                      Set Reminder
+                    <button 
+                      onClick={() => {
+                        if (currentChannel.isYoutube) {
+                          handlePlayYouTubeVideo(program);
+                        }
+                      }}
+                      className="bg-gray-600 hover:bg-gray-500 text-gray-300 px-4 py-2 rounded-lg transition-colors"
+                    >
+                      {currentChannel.isYoutube ? 'Stream Video' : 'Set Reminder'}
                     </button>
                   )}
                 </div>
@@ -497,6 +602,9 @@ export default function ChannelsSchedule({ channelIndex = 0, onBack }: ChannelsS
       <div className="mt-8 text-center">
         <p className="text-gray-400 text-sm">
           &copy; 2025 Mahaa Digital. All times are in Eastern Time (ET).
+          {currentChannel.isYoutube && (
+            <span className="ml-2">• YouTube content available on-demand</span>
+          )}
         </p>
       </div>
     </div>

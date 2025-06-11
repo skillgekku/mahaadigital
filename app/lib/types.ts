@@ -13,6 +13,17 @@ export interface ScheduleDay {
   programs: Program[];
 }
 
+// YouTube Video Interface for playlists
+export interface YouTubeVideo {
+  id: string;
+  title: string;
+  description: string;
+  youtubeId: string;
+  duration: string;
+  category: string;
+  scheduledTime?: string;
+}
+
 export interface ChannelConfig {
   id: string;
   name: string;
@@ -23,12 +34,14 @@ export interface ChannelConfig {
   streamUrl?: string;
   isYoutube?: boolean;
   youtubeVideoId?: string;
+  youtubePlaylist?: YouTubeVideo[]; // For channels with multiple YouTube videos
 }
 
 export interface VideoPlayerProps {
   channel: ChannelConfig;
   isOpen: boolean;
   onClose: () => void;
+  onPiPChange?: (isPiP: boolean) => void;
 }
 
 export type ViewMode = 'home' | 'schedule' | 'player';
