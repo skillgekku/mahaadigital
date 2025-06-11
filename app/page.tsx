@@ -8,8 +8,9 @@ const streams: Record<string, string> = {
   stream1: "https://news.mahaaone.com/hls/test.m3u8",
   stream2: "https://bhakti.mahaaone.com/hls/test.m3u8",
   stream3: "https://max.mahaaone.com/hls/test.m3u8",
+  stream4: "https://usa.mahaaone.com/hls/test.m3u8",
 };
-// Folder Structure
+
 export default function Home(): JSX.Element {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,16 +21,62 @@ export default function Home(): JSX.Element {
   const [isMuted, setIsMuted] = useState(false);
   const [isPiPMode, setIsPiPMode] = useState(false);
   const [isPiPSupported, setIsPiPSupported] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
 
-  // Check PiP support on mount
+  // Check PiP support and load theme preference on mount
   useEffect(() => {
     if (typeof document !== 'undefined') {
       setIsPiPSupported('pictureInPictureEnabled' in document);
+      
+      // Load theme preference from localStorage
+      const savedTheme = localStorage.getItem('mahaa-tv-theme');
+      if (savedTheme) {
+        setIsDarkMode(savedTheme === 'dark');
+      }
     }
   }, []);
+
+  // Save theme preference
+  useEffect(() => {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('mahaa-tv-theme', isDarkMode ? 'dark' : 'light');
+    }
+  }, [isDarkMode]);
+
+  // Toggle theme
+  const toggleTheme = () => {
+    setIsDarkMode(!isDarkMode);
+  };
+
+  // Theme classes
+  const themeClasses = {
+    body: isDarkMode 
+      ? "bg-gradient-to-br from-gray-900 via-gray-800 to-black" 
+      : "bg-gradient-to-br from-gray-50 via-white to-gray-100",
+    header: isDarkMode 
+      ? "bg-gradient-to-r from-red-600 to-red-800" 
+      : "bg-gradient-to-r from-red-500 to-red-700",
+    card: isDarkMode 
+      ? "bg-gray-800 border-gray-700 hover:border-gray-600" 
+      : "bg-white border-gray-200 hover:border-gray-300 shadow-lg",
+    title: isDarkMode ? "text-white" : "text-gray-900",
+    subtitle: isDarkMode ? "text-gray-300" : "text-gray-600",
+    description: isDarkMode ? "text-gray-400" : "text-gray-500",
+    footer: isDarkMode 
+      ? "bg-black text-gray-400 border-gray-800" 
+      : "bg-gray-900 text-gray-300 border-gray-700",
+    pipCard: isDarkMode 
+      ? "bg-gradient-to-r from-blue-600 to-blue-800" 
+      : "bg-gradient-to-r from-blue-500 to-blue-700",
+    errorCard: isDarkMode 
+      ? "bg-gray-800 border-red-500" 
+      : "bg-white border-red-400",
+    errorText: isDarkMode ? "text-white" : "text-gray-900",
+    errorSubtext: isDarkMode ? "text-gray-300" : "text-gray-600"
+  };
 
   // Cleanup function
   const cleanup = () => {
@@ -222,13 +269,11 @@ export default function Home(): JSX.Element {
 
     const handleEnterPiP = () => {
       setIsPiPMode(true);
-      setShowOverlay(false); // Hide the overlay when entering PiP
+      setShowOverlay(false);
     };
 
     const handleLeavePiP = () => {
       setIsPiPMode(false);
-      // Don't automatically show overlay when leaving PiP
-      // User can manually open it again if needed
     };
 
     video.addEventListener('enterpictureinpicture', handleEnterPiP);
@@ -293,12 +338,21 @@ export default function Home(): JSX.Element {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+    <div className={`flex flex-col min-h-screen ${themeClasses.body}`}>
       {/* Header */}
-      <nav className="bg-gradient-to-r from-red-600 to-red-800 text-white py-6 px-8 shadow-2xl">
+      <nav className={`${themeClasses.header} text-white py-6 px-8 shadow-2xl`}>
         <div className="container mx-auto flex items-center justify-between">
           <h1 className="text-3xl font-bold tracking-wide">Mahaa LIVE TV</h1>
           <div className="flex items-center space-x-4">
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-lg bg-white bg-opacity-10 hover:bg-opacity-20 transition-colors"
+              title={`Switch to ${isDarkMode ? 'Light' : 'Dark'} Mode`}
+            >
+              {isDarkMode ? '☀️' : '🌙'}
+            </button>
+            
             {isPiPMode && (
               <div className="flex items-center space-x-2 bg-blue-600 px-3 py-1 rounded-full">
                 <div className="w-2 h-2 bg-blue-300 rounded-full animate-pulse"></div>
@@ -317,11 +371,11 @@ export default function Home(): JSX.Element {
       <main className="flex-grow px-6 py-12">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-white mb-4">Select Your Channel</h2>
-            <p className="text-gray-300 text-lg">Experience premium live streaming</p>
+            <h2 className={`text-4xl font-bold ${themeClasses.title} mb-4`}>Select Your Channel</h2>
+            <p className={`${themeClasses.subtitle} text-lg`}>Experience premium live streaming</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
               { 
                 name: "Mahaa News", 
@@ -341,20 +395,32 @@ export default function Home(): JSX.Element {
                 color: "from-purple-600 to-purple-800",
                 icon: "🎬"
               },
+              { 
+                name: "Mahaa USA", 
+                description: "US Telugu Content",
+                color: "from-green-600 to-green-800",
+                icon: "🇺🇸"
+              },
             ].map((channel, idx) => (
               <div
                 key={channel.name}
                 className="group cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-2xl"
                 onClick={() => openPlayer(`stream${idx + 1}`, channel.name)}
               >
-                <div className="bg-gray-800 rounded-xl overflow-hidden shadow-xl border border-gray-700 hover:border-gray-600">
+                <div className={`${themeClasses.card} rounded-xl overflow-hidden shadow-xl border`}>
                   <div className="relative">
                     <Image
-                      src={`https://raw.githubusercontent.com/skillgekku/media-assets/refs/heads/main/${["news", "baks", "max"][idx]}.png`}
+                      src={
+                        idx === 3 
+                          ? "https://raw.githubusercontent.com/skillgekku/media-assets/refs/heads/main/MAHAA%20USA%20PNG.png"
+                          : `https://raw.githubusercontent.com/skillgekku/media-assets/refs/heads/main/${["news", "baks", "max"][idx]}.png`
+                      }
                       alt={channel.name}
                       width={300}
                       height={150}
-                      className="w-full h-56 object-cover group-hover:scale-110 transition-transform duration-500"
+                      className={`w-full h-56 group-hover:scale-110 transition-transform duration-500 ${
+                        idx === 3 ? 'object-contain bg-white' : 'object-cover'
+                      }`}
                     />
                     <div className={`absolute inset-0 bg-gradient-to-t ${channel.color} opacity-0 group-hover:opacity-30 transition-opacity duration-300`}></div>
                     <div className="absolute top-4 right-4 text-2xl bg-black bg-opacity-50 rounded-full w-12 h-12 flex items-center justify-center">{channel.icon}</div>
@@ -363,8 +429,8 @@ export default function Home(): JSX.Element {
                     </div>
                   </div>
                   <div className="p-6">
-                    <h3 className="text-xl font-bold text-white mb-2">{channel.name}</h3>
-                    <p className="text-gray-400 mb-4">{channel.description}</p>
+                    <h3 className={`text-xl font-bold ${themeClasses.title} mb-2`}>{channel.name}</h3>
+                    <p className={`${themeClasses.description} mb-4`}>{channel.description}</p>
                     <button className={`w-full bg-gradient-to-r ${channel.color} text-white py-3 px-6 rounded-lg font-semibold transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1`}>
                       Watch Now
                     </button>
@@ -376,7 +442,7 @@ export default function Home(): JSX.Element {
 
           {/* PiP Status Card */}
           {isPiPMode && (
-            <div className="mt-8 bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl p-6 text-white">
+            <div className={`mt-8 ${themeClasses.pipCard} rounded-xl p-6 text-white`}>
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-xl font-bold mb-2">Picture-in-Picture Active</h3>
@@ -403,7 +469,7 @@ export default function Home(): JSX.Element {
       </main>
 
       {/* Footer */}
-      <footer className="bg-black text-gray-400 text-center py-6 border-t border-gray-800">
+      <footer className={`${themeClasses.footer} text-center py-6 border-t`}>
         <div className="container mx-auto">
           <p>&copy; 2025 Mahaa Digital. All rights reserved.</p>
           <p className="text-sm mt-2">Premium streaming experience</p>
@@ -459,15 +525,15 @@ export default function Home(): JSX.Element {
             {/* Error */}
             {error && (
               <div className="absolute inset-0 flex items-center justify-center bg-black z-20">
-                <div className="text-center bg-gray-800 p-8 rounded-lg border border-red-500 max-w-md mx-4">
+                <div className={`text-center ${themeClasses.errorCard} p-8 rounded-lg border max-w-md mx-4`}>
                   <div className="text-red-500 text-6xl mb-4">⚠️</div>
-                  <p className="text-white text-xl mb-4">Playback Error</p>
-                  <p className="text-gray-300 mb-6">{error}</p>
+                  <p className={`${themeClasses.errorText} text-xl mb-4`}>Playback Error</p>
+                  <p className={`${themeClasses.errorSubtext} mb-6`}>{error}</p>
                   <div className="space-y-3">
                     <button 
                       onClick={() => {
                         setError(null);
-                        initializePlayer(streams[`stream${selectedChannel.includes('News') ? '1' : selectedChannel.includes('Bhakti') ? '2' : '3'}`]);
+                        initializePlayer(streams[`stream${selectedChannel.includes('News') ? '1' : selectedChannel.includes('Bhakti') ? '2' : selectedChannel.includes('Max') ? '3' : '4'}`]);
                       }}
                       className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors"
                     >
