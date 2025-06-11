@@ -3,7 +3,8 @@
 import Image from 'next/image';
 import { ChannelConfig } from '@/app/lib/types';
 import { useTheme } from '@/app/hooks/useTheme';
-import { THEME_CLASSES } from '@/app/lib/constants';
+import { THEME_CLASSES, MAHAA_USA_PLAYLIST } from '@/app/lib/constants';
+import { Youtube, List } from 'lucide-react';
 
 interface ChannelCardProps {
   channel: ChannelConfig;
@@ -33,6 +34,8 @@ export default function ChannelCard({ channel, index, onPlay, onSchedule }: Chan
     'mahaa-usa': 'bg-green-600 hover:bg-green-700'
   };
 
+  const isUSAChannel = channel.id === 'mahaa-usa';
+
   return (
     <div className="group cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-2xl">
       <div className={`${theme.card} rounded-xl overflow-hidden shadow-xl border`}>
@@ -55,8 +58,16 @@ export default function ChannelCard({ channel, index, onPlay, onSchedule }: Chan
           </div>
           
           <div className="absolute bottom-4 left-4 bg-black bg-opacity-75 text-white px-3 py-1 rounded text-sm font-medium">
-            {channel.isYoutube ? 'YOUTUBE' : 'LIVE'}
+            {isUSAChannel ? 'YOUTUBE PLAYLIST' : (channel.isYoutube ? 'YOUTUBE' : 'LIVE')}
           </div>
+
+          {/* Special indicator for USA channel */}
+          {isUSAChannel && (
+            <div className="absolute top-4 left-4 bg-green-600 bg-opacity-90 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1">
+              <List className="w-3 h-3" />
+              <span>{MAHAA_USA_PLAYLIST.length} Videos</span>
+            </div>
+          )}
           
           {/* Hover overlay with buttons */}
           <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center space-x-3">
@@ -64,38 +75,50 @@ export default function ChannelCard({ channel, index, onPlay, onSchedule }: Chan
               onClick={() => onPlay(channel)}
               className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
             >
-              <span>▶</span>
+              {isUSAChannel ? (
+                <>
+                  <List className="w-4 h-4" />
+                  <span>Browse</span>
+                </>
+              ) : (
+                <>
+                  <span>▶</span>
+                  <span>Play</span>
+                </>
+              )}
             </button>
-            {/* <button
-              onClick={() => onSchedule(index)}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
-            >
-              <span>📅</span>
-              <span>Schedule</span>
-            </button> */}
           </div>
         </div>
         
         <div className="p-6">
-          <h3 className={`text-xl font-bold ${theme.title} mb-2`}>{channel.name}</h3>
+          <div className="flex items-start justify-between mb-2">
+            <h3 className={`text-xl font-bold ${theme.title}`}>{channel.name}</h3>
+            {isUSAChannel && (
+              <Youtube className="w-5 h-5 text-red-500 flex-shrink-0" />
+            )}
+          </div>
+          
           <p className={`${theme.description} mb-4`}>{channel.description}</p>
+          
+        
+          
           <div className="flex space-x-2">
             <button 
               onClick={() => onPlay(channel)}
-              className={`flex-1 ${buttonColorMap[channel.id as keyof typeof buttonColorMap]} text-white py-3 px-4 rounded-lg font-semibold transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1`}
+              className={`flex-1 ${buttonColorMap[channel.id as keyof typeof buttonColorMap]} text-white py-3 px-4 rounded-lg font-semibold transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1 flex items-center justify-center space-x-2`}
             >
-              Watch Now
+              {isUSAChannel ? (
+                <>
+                  <List className="w-4 h-4" />
+                  <span>Watch Now</span>
+                </>
+              ) : (
+                <>
+                  <span>▶</span>
+                  <span>Watch Now</span>
+                </>
+              )}
             </button>
-            {/* <button
-              onClick={() => onSchedule(index)}
-              className={`px-4 py-3 rounded-lg transition-colors border-2 font-semibold ${
-                isDarkMode 
-                  ? 'border-gray-600 text-gray-300 hover:border-gray-500 hover:bg-gray-700' 
-                  : 'border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50'
-              }`}
-            >
-              📅
-            </button> */}
           </div>
         </div>
       </div>

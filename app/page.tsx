@@ -9,6 +9,7 @@ import Footer from './components/ui/Footer';
 import ChannelGrid from './components/channel/ChannelGrid';
 import VideoPlayer from './components/channel/VideoPlayer';
 import ChannelsSchedule from './components/schedule/ChannelsSchedule';
+import MahaaUSAPlaylist from './components/channel/MahaaUSAPlaylist';
 
 export default function HomePage() {
   const { isDarkMode } = useTheme();
@@ -16,28 +17,60 @@ export default function HomePage() {
   const [selectedChannel, setSelectedChannel] = useState<ChannelConfig | null>(null);
   const [selectedChannelForSchedule, setSelectedChannelForSchedule] = useState(0);
   const [isPiPActive, setIsPiPActive] = useState(false);
+  const [selectedYouTubeVideoId, setSelectedYouTubeVideoId] = useState<string | null>(null);
 
   const theme = THEME_CLASSES[isDarkMode ? 'dark' : 'light'];
 
   const handlePlayChannel = (channel: ChannelConfig) => {
-    setSelectedChannel(channel);
-    setCurrentView('player');
+    if (channel.id === 'mahaa-usa') {
+      // For Mahaa USA, show playlist selector instead of direct play
+      setSelectedChannel(channel);
+      setCurrentView('usa-playlist');
+    } else {
+      // For other channels, play directly
+      setSelectedChannel(channel);
+      setCurrentView('player');
+    }
   };
 
   const handleScheduleView = (channelIndex: number) => {
-    setSelectedChannelForSchedule(channelIndex);
-    setCurrentView('schedule');
+    if (channelIndex === 3) { // Mahaa USA
+      setSelectedChannelForSchedule(channelIndex);
+      setCurrentView('usa-playlist');
+    } else {
+      setSelectedChannelForSchedule(channelIndex);
+      setCurrentView('schedule');
+    }
   };
 
   const handleBackToHome = () => {
     setCurrentView('home');
     setSelectedChannel(null);
+    setSelectedYouTubeVideoId(null);
   };
 
   const handleClosePlayer = () => {
     setSelectedChannel(null);
+    setSelectedYouTubeVideoId(null);
     setCurrentView('home');
     setIsPiPActive(false);
+  };
+
+  const handlePlayYouTubeVideo = (videoId: string) => {
+    setSelectedYouTubeVideoId(videoId);
+    setCurrentView('player');
+  };
+
+  // Create a modified channel for YouTube video playback
+  const getModifiedUSAChannel = (): ChannelConfig | null => {
+    if (!selectedChannel || selectedChannel.id !== 'mahaa-usa' || !selectedYouTubeVideoId) {
+      return selectedChannel;
+    }
+    
+    return {
+      ...selectedChannel,
+      youtubeVideoId: selectedYouTubeVideoId
+    };
   };
 
   if (currentView === 'schedule') {
@@ -45,6 +78,15 @@ export default function HomePage() {
       <ChannelsSchedule 
         channelIndex={selectedChannelForSchedule} 
         onBack={handleBackToHome} 
+      />
+    );
+  }
+
+  if (currentView === 'usa-playlist') {
+    return (
+      <MahaaUSAPlaylist
+        onBack={handleBackToHome}
+        onPlayVideo={handlePlayYouTubeVideo}
       />
     );
   }
@@ -76,11 +118,12 @@ export default function HomePage() {
 
       <Footer />
 
-      {selectedChannel && (
+      {selectedChannel && currentView === 'player' && (
         <VideoPlayer
-          channel={selectedChannel}
+          channel={getModifiedUSAChannel()!}
           isOpen={currentView === 'player'}
           onClose={handleClosePlayer}
+          onPiPChange={setIsPiPActive}
         />
       )}
     </div>

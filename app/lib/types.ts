@@ -44,4 +44,4 @@ export interface VideoPlayerProps {
   onPiPChange?: (isPiP: boolean) => void;
 }
 
-export type ViewMode = 'home' | 'schedule' | 'player';
+export type ViewMode = 'home' | 'schedule' | 'player' | 'usa-playlist';
