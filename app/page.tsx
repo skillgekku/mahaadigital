@@ -9,8 +9,11 @@ const streams: Record<string, string> = {
   stream1: "https://news.mahaaone.com/hls/test.m3u8",
   stream2: "https://bhakti.mahaaone.com/hls/test.m3u8",
   stream3: "https://max.mahaaone.com/hls/test.m3u8",
-  stream4: "https://usa.mahaaone.com/hls/test.m3u8",
+  stream4: "youtube", // Special identifier for YouTube content
 };
+
+// YouTube video ID extracted from the URL
+const YOUTUBE_VIDEO_ID = "Izd-SLokbPY";
 
 export default function Home(): JSX.Element {
   const [isLoading, setIsLoading] = useState(false);
@@ -25,6 +28,7 @@ export default function Home(): JSX.Element {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [currentView, setCurrentView] = useState<'home' | 'schedule'>('home');
   const [selectedChannelForSchedule, setSelectedChannelForSchedule] = useState(0);
+  const [isYouTubeChannel, setIsYouTubeChannel] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
@@ -118,6 +122,7 @@ export default function Home(): JSX.Element {
     setError(null);
     setIsPlaying(false);
     setIsPiPMode(false);
+    setIsYouTubeChannel(false);
     
     // Exit fullscreen if active
     if (document.fullscreenElement) {
@@ -127,6 +132,11 @@ export default function Home(): JSX.Element {
 
   // Toggle Picture-in-Picture
   const togglePiP = async () => {
+    if (isYouTubeChannel) {
+      setError('Picture-in-Picture is not available for YouTube content');
+      return;
+    }
+
     const video = videoRef.current;
     if (!video || !isPiPSupported) return;
 
@@ -140,6 +150,15 @@ export default function Home(): JSX.Element {
       console.error('Failed to toggle Picture-in-Picture:', error);
       setError('Picture-in-Picture not available');
     }
+  };
+
+  // Handle YouTube channel
+  const openYouTubeChannel = (channelName: string) => {
+    setSelectedChannel(channelName);
+    setIsYouTubeChannel(true);
+    setShowOverlay(true);
+    setIsLoading(false);
+    setError(null);
   };
 
   // Initialize HLS player
@@ -218,7 +237,14 @@ export default function Home(): JSX.Element {
   // Open player
   const openPlayer = (streamKey: string, channelName: string) => {
     console.log('Opening player for:', channelName, streams[streamKey]);
+    
+    if (streams[streamKey] === "youtube") {
+      openYouTubeChannel(channelName);
+      return;
+    }
+    
     setSelectedChannel(channelName);
+    setIsYouTubeChannel(false);
     setShowOverlay(true);
     
     // Small delay to ensure DOM is ready
@@ -229,6 +255,8 @@ export default function Home(): JSX.Element {
 
   // Toggle play/pause
   const togglePlayPause = () => {
+    if (isYouTubeChannel) return; // YouTube controls handled by YouTube player
+    
     const video = videoRef.current;
     if (!video) return;
 
@@ -244,6 +272,8 @@ export default function Home(): JSX.Element {
 
   // Toggle mute
   const toggleMute = () => {
+    if (isYouTubeChannel) return; // YouTube controls handled by YouTube player
+    
     const video = videoRef.current;
     if (!video) return;
     
@@ -253,6 +283,8 @@ export default function Home(): JSX.Element {
 
   // Handle volume change
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isYouTubeChannel) return; // YouTube controls handled by YouTube player
+    
     const video = videoRef.current;
     if (!video) return;
     
@@ -264,6 +296,12 @@ export default function Home(): JSX.Element {
 
   // Enter fullscreen
   const enterFullscreen = () => {
+    if (isYouTubeChannel) {
+      // For YouTube, we can't control fullscreen directly
+      setError('Use YouTube player controls for fullscreen');
+      return;
+    }
+    
     const video = videoRef.current;
     if (!video) return;
 
@@ -278,6 +316,8 @@ export default function Home(): JSX.Element {
 
   // PiP event handlers
   useEffect(() => {
+    if (isYouTubeChannel) return; // Skip PiP events for YouTube
+    
     const video = videoRef.current;
     if (!video) return;
 
@@ -297,18 +337,19 @@ export default function Home(): JSX.Element {
       video.removeEventListener('enterpictureinpicture', handleEnterPiP);
       video.removeEventListener('leavepictureinpicture', handleLeavePiP);
     };
-  }, []);
+  }, [isYouTubeChannel]);
 
   // Fullscreen change handler
   useEffect(() => {
     const handleFullscreenChange = () => {
-      if (!document.fullscreenElement && showOverlay && !isPiPMode) {
+      if (!document.fullscreenElement && showOverlay && !isPiPMode && !isYouTubeChannel) {
         closePlayer();
       }
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!showOverlay && !isPiPMode) return;
+      if (isYouTubeChannel) return; // Let YouTube handle keyboard shortcuts
       
       switch (e.key) {
         case 'Escape':
@@ -342,7 +383,7 @@ export default function Home(): JSX.Element {
       document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [showOverlay, isPiPMode, isPiPSupported]);
+  }, [showOverlay, isPiPMode, isPiPSupported, isYouTubeChannel]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -353,8 +394,6 @@ export default function Home(): JSX.Element {
 
   // If schedule view is active, show the schedule component
   if (currentView === 'schedule') {
-    // For demo purposes, we'll show a placeholder. 
-    // Replace this with actual ChannelsSchedule component import
     return (
       <div className={`min-h-screen ${themeClasses.body} p-6`}>
         <div className="bg-gray-800 rounded-xl p-6 mb-6">
@@ -377,10 +416,6 @@ export default function Home(): JSX.Element {
             <p className="mb-2">📺 Schedule Component Placeholder</p>
             <p className="text-sm">
               <ChannelsSchedule channelIndex={selectedChannelForSchedule} onBack={backToHome} />
-            </p>
-            <p className="text-xs mt-2 opacity-75">
-              <ChannelsSchedule channelIndex={selectedChannelForSchedule} onBack={backToHome} />
-
             </p>
           </div>
         </div>
@@ -414,7 +449,7 @@ export default function Home(): JSX.Element {
               {isDarkMode ? '☀️' : '🌙'}
             </button>
             
-            {isPiPMode && (
+            {isPiPMode && !isYouTubeChannel && (
               <div className="flex items-center space-x-2 bg-blue-600 px-3 py-1 rounded-full">
                 <div className="w-2 h-2 bg-blue-300 rounded-full animate-pulse"></div>
                 <span className="text-xs font-medium">PiP Active</span>
@@ -434,8 +469,6 @@ export default function Home(): JSX.Element {
           <div className="text-center mb-12">
             <h2 className={`text-4xl font-bold ${themeClasses.title} mb-4`}>Select Your Channel</h2>
             <p className={`${themeClasses.subtitle} text-lg mb-4`}>Experience premium live streaming</p>
-            <div className="flex justify-center">
-            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -489,7 +522,7 @@ export default function Home(): JSX.Element {
                     </div>
                     <div className="absolute top-4 right-4 text-2xl bg-black bg-opacity-50 rounded-full w-12 h-12 flex items-center justify-center">{channel.icon}</div>
                     <div className="absolute bottom-4 left-4 bg-black bg-opacity-75 text-white px-3 py-1 rounded text-sm font-medium">
-                      LIVE
+                      {idx === 3 ? 'YOUTUBE' : 'LIVE'}
                     </div>
                     {/* Hover overlay with buttons */}
                     <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center space-x-3">
@@ -516,7 +549,7 @@ export default function Home(): JSX.Element {
                         onClick={() => openPlayer(`stream${idx + 1}`, channel.name)}
                         className={`flex-1 ${channel.buttonColor} text-white py-3 px-4 rounded-lg font-semibold transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1`}
                       >
-                        Watch Now
+                        {idx === 3 ? 'Watch Now' : 'Watch Now'}
                       </button>
                       <button
                         onClick={() => openSchedule(idx)}
@@ -536,7 +569,7 @@ export default function Home(): JSX.Element {
           </div>
 
           {/* PiP Status Card */}
-          {isPiPMode && (
+          {isPiPMode && !isYouTubeChannel && (
             <div className="mt-8 bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl p-6 text-white">
               <div className="flex items-center justify-between">
                 <div>
@@ -580,14 +613,14 @@ export default function Home(): JSX.Element {
               <h3 className="text-xl font-bold">{selectedChannel}</h3>
               <div className="flex items-center space-x-2">
                 <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                <span className="text-red-400 text-sm">LIVE</span>
-                {isPiPMode && (
+                <span className="text-red-400 text-sm">{isYouTubeChannel ? 'YOUTUBE' : 'LIVE'}</span>
+                {isPiPMode && !isYouTubeChannel && (
                   <span className="text-blue-400 text-sm">• PiP Active</span>
                 )}
               </div>
             </div>
             <div className="flex items-center space-x-3">
-              {isPiPSupported && (
+              {isPiPSupported && !isYouTubeChannel && (
                 <button
                   onClick={togglePiP}
                   className="text-white hover:text-blue-400 transition-colors text-xl"
@@ -607,128 +640,160 @@ export default function Home(): JSX.Element {
 
           {/* Video Container */}
           <div className="flex-1 relative bg-black">
-            {/* Loading */}
-            {isLoading && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black z-20">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-red-500 mx-auto mb-4"></div>
-                  <p className="text-white text-lg">Loading {selectedChannel}...</p>
-                </div>
+            {/* YouTube Content */}
+            {isYouTubeChannel && (
+              <div className="w-full h-full flex items-center justify-center">
+                <iframe
+                  width="100%"
+                  height="100%"
+                  src={`https://www.youtube.com/embed/${YOUTUBE_VIDEO_ID}?autoplay=1&mute=0&controls=1&rel=0&modestbranding=1`}
+                  title="Mahaa USA YouTube Stream"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  className="w-full h-full"
+                ></iframe>
               </div>
             )}
 
-            {/* Error */}
-            {error && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black z-20">
-                <div className={`text-center ${themeClasses.errorCard} p-8 rounded-lg border max-w-md mx-4`}>
-                  <div className="text-red-500 text-6xl mb-4">⚠️</div>
-                  <p className={`${themeClasses.errorText} text-xl mb-4`}>Playback Error</p>
-                  <p className={`${themeClasses.errorSubtext} mb-6`}>{error}</p>
-                  <div className="space-y-3">
-                    <button 
-                      onClick={() => {
-                        setError(null);
-                        initializePlayer(streams[`stream${selectedChannel.includes('News') ? '1' : selectedChannel.includes('Bhakti') ? '2' : selectedChannel.includes('Max') ? '3' : '4'}`]);
-                      }}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors"
-                    >
-                      Retry
-                    </button>
-                    <button 
-                      onClick={closePlayer}
-                      className="w-full bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg transition-colors"
-                    >
-                      Close Player
-                    </button>
+            {/* Regular HLS Content */}
+            {!isYouTubeChannel && (
+              <>
+                {/* Loading */}
+                {isLoading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black z-20">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-red-500 mx-auto mb-4"></div>
+                      <p className="text-white text-lg">Loading {selectedChannel}...</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Error */}
+                {error && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black z-20">
+                    <div className={`text-center ${themeClasses.errorCard} p-8 rounded-lg border max-w-md mx-4`}>
+                      <div className="text-red-500 text-6xl mb-4">⚠️</div>
+                      <p className={`${themeClasses.errorText} text-xl mb-4`}>Playback Error</p>
+                      <p className={`${themeClasses.errorSubtext} mb-6`}>{error}</p>
+                      <div className="space-y-3">
+                        <button 
+                          onClick={() => {
+                            setError(null);
+                            initializePlayer(streams[`stream${selectedChannel.includes('News') ? '1' : selectedChannel.includes('Bhakti') ? '2' : selectedChannel.includes('Max') ? '3' : '4'}`]);
+                          }}
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors"
+                        >
+                          Retry
+                        </button>
+                        <button 
+                          onClick={closePlayer}
+                          className="w-full bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg transition-colors"
+                        >
+                          Close Player
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Video Element */}
+                <video
+                  ref={videoRef}
+                  className="w-full h-full object-contain"
+                  controls={false}
+                  playsInline
+                  onPlay={() => setIsPlaying(true)}
+                  onPause={() => setIsPlaying(false)}
+                  onVolumeChange={(e) => {
+                    const video = e.currentTarget;
+                    setVolume(video.volume);
+                    setIsMuted(video.muted);
+                  }}
+                  onError={() => setError('Video playback error occurred')}
+                />
+              </>
+            )}
+          </div>
+
+          {/* Bottom Controls - Only show for non-YouTube content */}
+          {!isYouTubeChannel && (
+            <div className="p-4 bg-black bg-opacity-70 text-white">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <button
+                    onClick={togglePlayPause}
+                    className="text-white hover:text-red-400 transition-colors text-2xl"
+                    disabled={isLoading || !!error}
+                  >
+                    {isPlaying ? "⏸️" : "▶️"}
+                  </button>
+                  
+                  <button
+                    onClick={toggleMute}
+                    className="text-white hover:text-red-400 transition-colors text-xl"
+                    disabled={isLoading || !!error}
+                  >
+                    {isMuted ? "🔇" : "🔊"}
+                  </button>
+                  
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.1"
+                      value={isMuted ? 0 : volume}
+                      onChange={handleVolumeChange}
+                      className="w-20 accent-red-500"
+                      disabled={isLoading || !!error}
+                    />
+                    <span className="text-white text-sm w-8">
+                      {Math.round((isMuted ? 0 : volume) * 100)}
+                    </span>
                   </div>
                 </div>
-              </div>
-            )}
 
-            {/* Video Element */}
-            <video
-              ref={videoRef}
-              className="w-full h-full object-contain"
-              controls={false}
-              playsInline
-              onPlay={() => setIsPlaying(true)}
-              onPause={() => setIsPlaying(false)}
-              onVolumeChange={(e) => {
-                const video = e.currentTarget;
-                setVolume(video.volume);
-                setIsMuted(video.muted);
-              }}
-              onError={() => setError('Video playback error occurred')}
-            />
-          </div>
-
-          {/* Bottom Controls */}
-          <div className="p-4 bg-black bg-opacity-70 text-white">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={togglePlayPause}
-                  className="text-white hover:text-red-400 transition-colors text-2xl"
-                  disabled={isLoading || !!error}
-                >
-                  {isPlaying ? "⏸️" : "▶️"}
-                </button>
-                
-                <button
-                  onClick={toggleMute}
-                  className="text-white hover:text-red-400 transition-colors text-xl"
-                  disabled={isLoading || !!error}
-                >
-                  {isMuted ? "🔇" : "🔊"}
-                </button>
-                
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.1"
-                    value={isMuted ? 0 : volume}
-                    onChange={handleVolumeChange}
-                    className="w-20 accent-red-500"
+                <div className="flex items-center space-x-4">
+                  {isPiPSupported && (
+                    <button
+                      onClick={togglePiP}
+                      className={`hover:text-blue-400 transition-colors text-xl ${isPiPMode ? 'text-blue-400' : 'text-white'}`}
+                      disabled={isLoading || !!error}
+                      title="Picture-in-Picture (P)"
+                    >
+                      📱
+                    </button>
+                  )}
+                  <button
+                    onClick={enterFullscreen}
+                    className="text-white hover:text-red-400 transition-colors text-xl"
                     disabled={isLoading || !!error}
-                  />
-                  <span className="text-white text-sm w-8">
-                    {Math.round((isMuted ? 0 : volume) * 100)}
-                  </span>
+                  >
+                    ⛶
+                  </button>
                 </div>
               </div>
-
-              <div className="flex items-center space-x-4">
-                {isPiPSupported && (
-                  <button
-                    onClick={togglePiP}
-                    className={`hover:text-blue-400 transition-colors text-xl ${isPiPMode ? 'text-blue-400' : 'text-white'}`}
-                    disabled={isLoading || !!error}
-                    title="Picture-in-Picture (P)"
-                  >
-                    📱
-                  </button>
-                )}
-                <button
-                  onClick={enterFullscreen}
-                  className="text-white hover:text-red-400 transition-colors text-xl"
-                  disabled={isLoading || !!error}
-                >
-                  ⛶
-                </button>
+              
+              <div className="mt-2 text-gray-400 text-xs">
+                Space: Play/Pause • M: Mute • {isPiPSupported ? 'P: Picture-in-Picture • ' : ''}Esc: Exit
               </div>
             </div>
-            
-            <div className="mt-2 text-gray-400 text-xs">
-              Space: Play/Pause • M: Mute • {isPiPSupported ? 'P: Picture-in-Picture • ' : ''}Esc: Exit
+          )}
+
+          {/* YouTube Controls Info */}
+          {isYouTubeChannel && (
+            <div className="p-4 bg-black bg-opacity-70 text-white">
+              <div className="text-center text-gray-400 text-sm">
+                Use YouTube player controls for playback, volume, and fullscreen options
+              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
 
       {/* Hidden video element for PiP mode */}
-      {isPiPMode && !showOverlay && (
+      {isPiPMode && !showOverlay && !isYouTubeChannel && (
         <video
           ref={videoRef}
           className="hidden"
