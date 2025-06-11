@@ -3,6 +3,7 @@
 import { JSX, useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import Hls from "hls.js";
+import ChannelsSchedule from "./ChannelsSchedule";
 
 const streams: Record<string, string> = {
   stream1: "https://news.mahaaone.com/hls/test.m3u8",
@@ -22,6 +23,8 @@ export default function Home(): JSX.Element {
   const [isPiPMode, setIsPiPMode] = useState(false);
   const [isPiPSupported, setIsPiPSupported] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [currentView, setCurrentView] = useState<'home' | 'schedule'>('home');
+  const [selectedChannelForSchedule, setSelectedChannelForSchedule] = useState(0);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
@@ -49,6 +52,17 @@ export default function Home(): JSX.Element {
   // Toggle theme
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
+  };
+
+  // Open schedule for specific channel
+  const openSchedule = (channelIndex: number) => {
+    setSelectedChannelForSchedule(channelIndex);
+    setCurrentView('schedule');
+  };
+
+  // Return to home view
+  const backToHome = () => {
+    setCurrentView('home');
   };
 
   // Theme classes
@@ -337,6 +351,43 @@ export default function Home(): JSX.Element {
     };
   }, []);
 
+  // If schedule view is active, show the schedule component
+  if (currentView === 'schedule') {
+    // For demo purposes, we'll show a placeholder. 
+    // Replace this with actual ChannelsSchedule component import
+    return (
+      <div className={`min-h-screen ${themeClasses.body} p-6`}>
+        <div className="bg-gray-800 rounded-xl p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-2xl font-bold text-white">
+              {['Mahaa News', 'Mahaa Bhakti', 'Mahaa Max', 'Mahaa USA'][selectedChannelForSchedule]} Schedule
+            </h1>
+            <button
+              onClick={backToHome}
+              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
+            >
+              <span>←</span>
+              <span>Back to Channels</span>
+            </button>
+          </div>
+          <div className="text-gray-300 mb-4">
+            Program schedule for {['Mahaa News', 'Mahaa Bhakti', 'Mahaa Max', 'Mahaa USA'][selectedChannelForSchedule]}
+          </div>
+          <div className="bg-gray-700 rounded-lg p-4 text-center text-gray-400">
+            <p className="mb-2">📺 Schedule Component Placeholder</p>
+            <p className="text-sm">
+              <ChannelsSchedule channelIndex={selectedChannelForSchedule} onBack={backToHome} />
+            </p>
+            <p className="text-xs mt-2 opacity-75">
+              <ChannelsSchedule channelIndex={selectedChannelForSchedule} onBack={backToHome} />
+
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`flex flex-col min-h-screen ${themeClasses.body}`}>
       {/* Header */}
@@ -344,6 +395,16 @@ export default function Home(): JSX.Element {
         <div className="container mx-auto flex items-center justify-between">
           <h1 className="text-3xl font-bold tracking-wide">Mahaa LIVE TV</h1>
           <div className="flex items-center space-x-4">
+            {/* Schedule Button */}
+            <button
+              onClick={() => setCurrentView('schedule')}
+              className="bg-white bg-opacity-10 hover:bg-opacity-20 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
+              title="View All Schedules"
+            >
+              <span>📅</span>
+              <span className="hidden sm:inline">Schedules</span>
+            </button>
+            
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
@@ -372,7 +433,9 @@ export default function Home(): JSX.Element {
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-12">
             <h2 className={`text-4xl font-bold ${themeClasses.title} mb-4`}>Select Your Channel</h2>
-            <p className={`${themeClasses.subtitle} text-lg`}>Experience premium live streaming</p>
+            <p className={`${themeClasses.subtitle} text-lg mb-4`}>Experience premium live streaming</p>
+            <div className="flex justify-center">
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -380,60 +443,92 @@ export default function Home(): JSX.Element {
               { 
                 name: "Mahaa News", 
                 description: "24×7 News Channel",
-                color: "from-blue-600 to-blue-800",
+                buttonColor: "bg-blue-600 hover:bg-blue-700",
                 icon: "📺"
               },
               { 
                 name: "Mahaa Bhakti", 
                 description: "24×7 Devotional",
-                color: "from-orange-600 to-orange-800",
+                buttonColor: "bg-red-600 hover:bg-red-700",
                 icon: "🙏"
               },
               { 
                 name: "Mahaa Max", 
                 description: "Unlimited Entertainment",
-                color: "from-purple-600 to-purple-800",
+                buttonColor: "bg-purple-600 hover:bg-purple-700",
                 icon: "🎬"
               },
               { 
                 name: "Mahaa USA", 
                 description: "US Telugu Content",
-                color: "from-green-600 to-green-800",
+                buttonColor: "bg-green-600 hover:bg-green-700",
                 icon: "🇺🇸"
               },
             ].map((channel, idx) => (
               <div
                 key={channel.name}
                 className="group cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-2xl"
-                onClick={() => openPlayer(`stream${idx + 1}`, channel.name)}
               >
                 <div className={`${themeClasses.card} rounded-xl overflow-hidden shadow-xl border`}>
                   <div className="relative">
-                    <Image
-                      src={
-                        idx === 3 
-                          ? "https://raw.githubusercontent.com/skillgekku/media-assets/refs/heads/main/MAHAA%20USA%20PNG.png"
-                          : `https://raw.githubusercontent.com/skillgekku/media-assets/refs/heads/main/${["news", "baks", "max"][idx]}.png`
-                      }
-                      alt={channel.name}
-                      width={300}
-                      height={150}
-                      className={`w-full h-56 group-hover:scale-110 transition-transform duration-500 ${
-                        idx === 3 ? 'object-contain bg-white' : 'object-cover'
-                      }`}
-                    />
-                    <div className={`absolute inset-0 bg-gradient-to-t ${channel.color} opacity-0 group-hover:opacity-30 transition-opacity duration-300`}></div>
+                    <div onClick={() => openPlayer(`stream${idx + 1}`, channel.name)}>
+                      <Image
+                        src={
+                          idx === 3 
+                            ? "https://raw.githubusercontent.com/skillgekku/media-assets/refs/heads/main/MAHAA%20USA%20PNG.png"
+                            : `https://raw.githubusercontent.com/skillgekku/media-assets/refs/heads/main/${["news", "baks", "max"][idx]}.png`
+                        }
+                        alt={channel.name}
+                        width={300}
+                        height={150}
+                        className={`w-full h-56 group-hover:scale-110 transition-transform duration-500 ${
+                          idx === 3 ? 'object-contain bg-white' : 'object-cover'
+                        }`}
+                      />
+                      <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    </div>
                     <div className="absolute top-4 right-4 text-2xl bg-black bg-opacity-50 rounded-full w-12 h-12 flex items-center justify-center">{channel.icon}</div>
-                    <div className="absolute bottom-4 left-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm font-medium">
+                    <div className="absolute bottom-4 left-4 bg-black bg-opacity-75 text-white px-3 py-1 rounded text-sm font-medium">
                       LIVE
+                    </div>
+                    {/* Hover overlay with buttons */}
+                    <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center space-x-3">
+                      <button
+                        onClick={() => openPlayer(`stream${idx + 1}`, channel.name)}
+                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
+                      >
+                        <span>▶</span>
+                      </button>
+                      <button
+                        onClick={() => openSchedule(idx)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
+                      >
+                        <span>📅</span>
+                        <span>Schedule</span>
+                      </button>
                     </div>
                   </div>
                   <div className="p-6">
                     <h3 className={`text-xl font-bold ${themeClasses.title} mb-2`}>{channel.name}</h3>
                     <p className={`${themeClasses.description} mb-4`}>{channel.description}</p>
-                    <button className={`w-full bg-gradient-to-r ${channel.color} text-white py-3 px-6 rounded-lg font-semibold transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1`}>
-                      Watch Now
-                    </button>
+                    <div className="flex space-x-2">
+                      <button 
+                        onClick={() => openPlayer(`stream${idx + 1}`, channel.name)}
+                        className={`flex-1 ${channel.buttonColor} text-white py-3 px-4 rounded-lg font-semibold transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1`}
+                      >
+                        Watch Now
+                      </button>
+                      <button
+                        onClick={() => openSchedule(idx)}
+                        className={`px-4 py-3 rounded-lg transition-colors border-2 font-semibold ${
+                          isDarkMode 
+                            ? 'border-gray-600 text-gray-300 hover:border-gray-500 hover:bg-gray-700' 
+                            : 'border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50'
+                        }`}
+                      >
+                        📅
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -442,7 +537,7 @@ export default function Home(): JSX.Element {
 
           {/* PiP Status Card */}
           {isPiPMode && (
-            <div className={`mt-8 ${themeClasses.pipCard} rounded-xl p-6 text-white`}>
+            <div className="mt-8 bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl p-6 text-white">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-xl font-bold mb-2">Picture-in-Picture Active</h3>
