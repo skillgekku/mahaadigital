@@ -15,14 +15,14 @@ export default function Header({ onScheduleClick, isPiPActive }: HeaderProps) {
       <div className="container mx-auto flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-wide">Mahaa LIVE TV</h1>
         <div className="flex items-center space-x-4">
-          <button
+{/*           <button
             onClick={onScheduleClick}
             className="bg-white bg-opacity-10 hover:bg-opacity-20 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
             title="View All Schedules"
           >
             <span>📅</span>
             <span className="hidden sm:inline">Schedules</span>
-          </button>
+          </button> */}
           
           <button
             onClick={toggleTheme}

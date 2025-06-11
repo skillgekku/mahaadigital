@@ -66,13 +66,13 @@ export default function ChannelCard({ channel, index, onPlay, onSchedule }: Chan
             >
               <span>▶</span>
             </button>
-            <button
+            {/* <button
               onClick={() => onSchedule(index)}
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
             >
               <span>📅</span>
               <span>Schedule</span>
-            </button>
+            </button> */}
           </div>
         </div>
         
@@ -86,7 +86,7 @@ export default function ChannelCard({ channel, index, onPlay, onSchedule }: Chan
             >
               Watch Now
             </button>
-            <button
+            {/* <button
               onClick={() => onSchedule(index)}
               className={`px-4 py-3 rounded-lg transition-colors border-2 font-semibold ${
                 isDarkMode 
@@ -95,7 +95,7 @@ export default function ChannelCard({ channel, index, onPlay, onSchedule }: Chan
               }`}
             >
               📅
-            </button>
+            </button> */}
           </div>
         </div>
       </div>

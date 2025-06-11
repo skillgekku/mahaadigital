@@ -35,9 +35,9 @@ export default function Footer() {
                 </button>
               </div>
               <div>
-                <button className="text-sm opacity-75 hover:opacity-100 transition-opacity hover:text-white">
+{/*                 <button className="text-sm opacity-75 hover:opacity-100 transition-opacity hover:text-white">
                   📅 TV Schedule
-                </button>
+                </button> */}
               </div>
               <div>
                 <button className="text-sm opacity-75 hover:opacity-100 transition-opacity hover:text-white">
