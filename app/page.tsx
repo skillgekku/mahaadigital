@@ -9,7 +9,7 @@ const streams: Record<string, string> = {
   stream2: "https://bhakti.mahaaone.com/hls/test.m3u8",
   stream3: "https://max.mahaaone.com/hls/test.m3u8",
 };
-
+// Folder Structure
 export default function Home(): JSX.Element {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
