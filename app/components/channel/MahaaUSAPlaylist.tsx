@@ -165,6 +165,17 @@ export default function MahaaUSAPlaylist({ onBack, onPlayVideo }: MahaaUSAPlayli
         <div className="container mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <div className="flex bg-gray-200 dark:bg-gray-700 rounded-lg p-1">
+                              <button
+                onClick={() => setViewMode('playlist')}
+                className={`px-4 py-2 rounded-md flex items-center space-x-2 transition-colors ${
+                  viewMode === 'playlist'
+                    ? 'bg-red-600 text-white'
+                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                }`}
+              >
+                <List className="w-4 h-4" />
+                <span>Playlist View</span>
+              </button>
               <button
                 onClick={() => setViewMode('schedule')}
                 className={`px-4 py-2 rounded-md flex items-center space-x-2 transition-colors ${
@@ -176,17 +187,7 @@ export default function MahaaUSAPlaylist({ onBack, onPlayVideo }: MahaaUSAPlayli
                 <Calendar className="w-4 h-4" />
                 <span>Schedule View</span>
               </button>
-              <button
-                onClick={() => setViewMode('playlist')}
-                className={`px-4 py-2 rounded-md flex items-center space-x-2 transition-colors ${
-                  viewMode === 'playlist'
-                    ? 'bg-red-600 text-white'
-                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-                }`}
-              >
-                <List className="w-4 h-4" />
-                <span>Playlist View</span>
-              </button>
+
             </div>
           </div>
           
