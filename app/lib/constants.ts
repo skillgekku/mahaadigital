@@ -51,8 +51,8 @@ export const MAHAA_USA_PLAYLIST: YouTubeVideo[] = [
   },
   {
     id: 'mahaa-icon',
-    title: 'Mahaa ICON Awards',
-    description: 'Prestigious awards ceremony celebrating Telugu excellence in North America',
+    title: 'Mahaa ICON ',
+    description: '',
     youtubeId: 'tq6kVYunCTk',
     duration: '3:20:15',
     category: 'Awards',

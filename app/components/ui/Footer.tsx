@@ -27,11 +27,10 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div className="text-center">
-            <h4 className="text-lg font-semibold text-white mb-3">Quick Links</h4>
+            <h4 className="text-lg font-semibold text-white mb-3"></h4>
             <div className="space-y-2">
               <div>
                 <button className="text-sm opacity-75 hover:opacity-100 transition-opacity hover:text-white">
-                  📺 Live Channels
                 </button>
               </div>
               <div>
@@ -41,12 +40,10 @@ export default function Footer() {
               </div>
               <div>
                 <button className="text-sm opacity-75 hover:opacity-100 transition-opacity hover:text-white">
-                  🎬 On Demand
                 </button>
               </div>
               <div>
                 <button className="text-sm opacity-75 hover:opacity-100 transition-opacity hover:text-white">
-                  📱 Mobile App
                 </button>
               </div>
             </div>
@@ -89,7 +86,7 @@ export default function Footer() {
         </div>
 
         {/* Channels List */}
-        <div className="border-t border-gray-700 pt-6 mb-6">
+{/*         <div className="border-t border-gray-700 pt-6 mb-6">
           <div className="text-center">
             <h4 className="text-sm font-semibold text-white mb-3">Our Channels</h4>
             <div className="flex flex-wrap justify-center items-center gap-4">
@@ -112,7 +109,7 @@ export default function Footer() {
             </div>
           </div>
         </div>
-
+ */}
 
 
         {/* Copyright */}

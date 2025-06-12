@@ -11,9 +11,10 @@ export default function Header({ onScheduleClick, isPiPActive }: HeaderProps) {
   const { isDarkMode, toggleTheme } = useTheme();
 
   return (
-    <nav className="bg-gradient-to-r from-red-600 via-yellow-500 to-yellow-400 text-white py-6 px-8 shadow-2xl">
-
-<div className="container mx-auto flex items-center justify-between">
+    <nav className="text-white py-6 px-8 shadow-2xl" style={{
+      background: 'linear-gradient(to right, #ee0979, #ff6a00)'
+    }}>
+      <div className="container mx-auto flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-wide">Mahaa LIVE TV</h1>
         <div className="flex items-center space-x-4">
 {/*           <button
