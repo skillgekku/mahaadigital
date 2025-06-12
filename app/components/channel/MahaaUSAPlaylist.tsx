@@ -114,7 +114,7 @@ export default function MahaaUSAPlaylist({ onBack, onPlayVideo }: MahaaUSAPlayli
   return (
     <div className={`min-h-screen ${theme.body}`}>
       {/* Header */}
-      <div className="bg-gradient-to-r from-green-600 to-green-800 text-white py-6 px-6">
+      <div className="bg-gradient-to-r from-red-600 to-red-800 text-white py-6 px-6">
         <div className="container mx-auto">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -124,8 +124,12 @@ export default function MahaaUSAPlaylist({ onBack, onPlayVideo }: MahaaUSAPlayli
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>
-              <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center text-2xl">
-                🇺🇸
+                <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center overflow-hidden">
+                <img
+                  src="https://raw.githubusercontent.com/skillgekku/media-assets/refs/heads/main/MAHAA%20USA%20PNG.png"
+                  alt="Mahaa USA"
+                  className="w-full h-full object-contain"
+                />
               </div>
               <div>
                 <h1 className="text-3xl font-bold">Mahaa USA</h1>
@@ -165,7 +169,7 @@ export default function MahaaUSAPlaylist({ onBack, onPlayVideo }: MahaaUSAPlayli
                 onClick={() => setViewMode('schedule')}
                 className={`px-4 py-2 rounded-md flex items-center space-x-2 transition-colors ${
                   viewMode === 'schedule'
-                    ? 'bg-green-600 text-white'
+                    ? 'bg-red-600 text-white'
                     : 'text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                 }`}
               >
@@ -176,7 +180,7 @@ export default function MahaaUSAPlaylist({ onBack, onPlayVideo }: MahaaUSAPlayli
                 onClick={() => setViewMode('playlist')}
                 className={`px-4 py-2 rounded-md flex items-center space-x-2 transition-colors ${
                   viewMode === 'playlist'
-                    ? 'bg-green-600 text-white'
+                    ? 'bg-red-600 text-white'
                     : 'text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                 }`}
               >
@@ -192,7 +196,7 @@ export default function MahaaUSAPlaylist({ onBack, onPlayVideo }: MahaaUSAPlayli
                 onClick={toggleShuffle}
                 className={`px-3 py-2 rounded-lg flex items-center space-x-2 transition-colors ${
                   isShuffled
-                    ? 'bg-green-600 text-white'
+                    ? 'bg-red-600 text-white'
                     : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                 }`}
               >
@@ -212,29 +216,29 @@ export default function MahaaUSAPlaylist({ onBack, onPlayVideo }: MahaaUSAPlayli
       <div className="container mx-auto px-6 py-8">
         {/* Currently Playing Section */}
         {currentVideo && viewMode === 'schedule' && (
-          <div className="bg-gradient-to-r from-green-600 to-green-800 rounded-xl p-6 mb-8 text-white">
+          <div className="bg-gradient-to-r from-red-600 to-red-800 rounded-xl p-6 mb-8 text-white">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 rounded-full bg-red-400 animate-pulse"></div>
+                  <div className="w-3 h-3 rounded-full bg-yellow-400 animate-pulse"></div>
                   <span className="text-red-300 font-semibold">NOW SCHEDULED</span>
                 </div>
                 <div>
                   <h3 className="text-2xl font-bold">{currentVideo.title}</h3>
                   <div className="flex items-center space-x-4 mt-2">
-                    <span className="text-green-100">
+                    <span className="text-red-100">
                       Scheduled: {currentVideo.scheduledTime}
                     </span>
                     <span className={`px-3 py-1 rounded-full text-sm text-white ${getCategoryColor(currentVideo.category)}`}>
                       {currentVideo.category}
                     </span>
-                    <span className="text-green-100">{currentVideo.duration}</span>
+                    <span className="text-red-100">{currentVideo.duration}</span>
                     <div className="flex items-center space-x-1">
                       <Youtube className="w-4 h-4 text-red-400" />
                       <span className="text-red-300 text-sm">YouTube</span>
                     </div>
                   </div>
-                  <p className="text-green-100 mt-2 max-w-2xl">{currentVideo.description}</p>
+                  <p className="text-red-100 mt-2 max-w-2xl">{currentVideo.description}</p>
                 </div>
               </div>
               <button
@@ -242,7 +246,7 @@ export default function MahaaUSAPlaylist({ onBack, onPlayVideo }: MahaaUSAPlayli
                 className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-6 py-3 rounded-lg flex items-center space-x-3 transition-all transform hover:scale-105"
               >
                 <Play className="w-5 h-5" />
-                <span className="font-semibold">Stream Now</span>
+                <span className="text-yellow-300 font-semibold">Stream Now</span>
               </button>
             </div>
           </div>
@@ -261,7 +265,7 @@ export default function MahaaUSAPlaylist({ onBack, onPlayVideo }: MahaaUSAPlayli
                 <div
                   key={video.id}
                   className={`${theme.card} rounded-xl p-6 border transition-all duration-300 hover:shadow-lg cursor-pointer ${
-                    video.isCurrentlyPlaying ? 'border-green-500 bg-green-50 dark:bg-green-900/20' : 'hover:border-green-300'
+                    video.isCurrentlyPlaying ? 'border-red-500 bg-red-50 dark:bg-red-900/20' : 'hover:border-red-300'
                   }`}
                   onClick={() => onPlayVideo(video.youtubeId)}
                 >
@@ -281,7 +285,7 @@ export default function MahaaUSAPlaylist({ onBack, onPlayVideo }: MahaaUSAPlayli
                           {video.title}
                         </h3>
                         {video.isCurrentlyPlaying && (
-                          <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+                          <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-medium">
                             NOW SCHEDULED
                           </span>
                         )}
@@ -307,7 +311,7 @@ export default function MahaaUSAPlaylist({ onBack, onPlayVideo }: MahaaUSAPlayli
                           e.stopPropagation();
                           onPlayVideo(video.youtubeId);
                         }}
-                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
                       >
                         <Play className="w-4 h-4" />
                         <span>Stream Video</span>
@@ -325,7 +329,7 @@ export default function MahaaUSAPlaylist({ onBack, onPlayVideo }: MahaaUSAPlayli
                   <List className="w-6 h-6" />
                   <span>Video Playlist</span>
                   {isShuffled && (
-                    <span className="text-green-600 text-lg">• Shuffled</span>
+                    <span className="text-red-600 text-lg">• Shuffled</span>
                   )}
                 </h2>
               </div>
@@ -333,7 +337,7 @@ export default function MahaaUSAPlaylist({ onBack, onPlayVideo }: MahaaUSAPlayli
               {getCurrentPlaylist().map((video, index) => (
                 <div
                   key={video.id}
-                  className={`${theme.card} rounded-xl overflow-hidden border transition-all duration-300 hover:shadow-lg cursor-pointer hover:border-green-300 transform hover:scale-105`}
+                  className={`${theme.card} rounded-xl overflow-hidden border transition-all duration-300 hover:shadow-lg cursor-pointer hover:border-red-300 transform hover:scale-105`}
                   onClick={() => onPlayVideo(video.youtubeId)}
                 >
                   {/* Video Thumbnail Placeholder */}
@@ -372,7 +376,7 @@ export default function MahaaUSAPlaylist({ onBack, onPlayVideo }: MahaaUSAPlayli
                           e.stopPropagation();
                           onPlayVideo(video.youtubeId);
                         }}
-                        className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm flex items-center space-x-1 transition-colors"
+                        className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm flex items-center space-x-1 transition-colors"
                       >
                         <Play className="w-3 h-3" />
                         <span>Play</span>

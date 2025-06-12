@@ -630,7 +630,7 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
         </div>
       </div>
 
-      {/* Video Container */}
+  {/* Video Container with Ad Banners */}
       <div 
         className="flex-1 relative bg-black min-h-0 overflow-hidden flex"
         onMouseMove={resetControlsTimeout}
@@ -641,8 +641,47 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
           minHeight: '200px'
         }}
       >
+        
+        {/* Left Ad Banner */}
+        <div className="hidden lg:flex lg:w-48 xl:w-64 bg-gray-900 border-r border-gray-700 flex-shrink-0">
+          <div className="w-full p-4 flex flex-col space-y-4">
+            {/* Ad Banner 1 */}
+            <div className="bg-gray-800 rounded-lg border border-gray-600 overflow-hidden">
+              <div className="bg-gradient-to-br from-blue-600 to-purple-600 p-4 text-center">
+                <div className="text-white font-bold text-sm mb-2">Advertisement</div>
+                <div className="bg-white bg-opacity-20 rounded-lg p-3">
+                  <div className="text-white text-xs font-medium mb-1">Your Ad Here</div>
+                  <div className="text-white text-xs opacity-75">Premium placement</div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Ad Banner 2 */}
+            <div className="bg-gray-800 rounded-lg border border-gray-600 overflow-hidden">
+              <div className="bg-gradient-to-br from-green-600 to-teal-600 p-4 text-center">
+                <div className="text-white font-bold text-sm mb-2">Sponsored</div>
+                <div className="bg-white bg-opacity-20 rounded-lg p-3">
+                  <div className="text-white text-xs font-medium mb-1">Brand Partner</div>
+                  <div className="text-white text-xs opacity-75">Click to learn more</div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Ad Banner 3 */}
+            <div className="bg-gray-800 rounded-lg border border-gray-600 overflow-hidden">
+              <div className="bg-gradient-to-br from-red-600 to-pink-600 p-4 text-center">
+                <div className="text-white font-bold text-sm mb-2">Featured</div>
+                <div className="bg-white bg-opacity-20 rounded-lg p-3">
+                  <div className="text-white text-xs font-medium mb-1">Special Offer</div>
+                  <div className="text-white text-xs opacity-75">Limited time</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Main Video Area */}
-        <div className={`${(showPlaylist || showSchedule) && isUSAPlaylist ? 'w-2/3' : 'w-full'} transition-all duration-300`}>
+        <div className={`flex-1 transition-all duration-300 ${(showPlaylist || showSchedule) && isUSAPlaylist ? 'lg:flex-none lg:w-1/2 xl:w-3/5' : ''}`}>
           {/* YouTube Content */}
           {channel.isYoutube && (
             <div className="w-full h-full flex items-center justify-center">
@@ -722,7 +761,7 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
 
         {/* Playlist Sidebar (USA only) */}
         {(showPlaylist || showSchedule) && isUSAPlaylist && (
-          <div className="w-1/3 bg-gray-900 bg-opacity-95 overflow-hidden border-l border-gray-700">
+          <div className="w-full lg:w-1/3 xl:w-1/4 bg-gray-900 bg-opacity-95 overflow-hidden border-l border-gray-700">
             <div className="h-full flex flex-col">
               {/* Sidebar Header */}
               <div className="p-4 border-b border-gray-700 flex items-center justify-between">
@@ -802,6 +841,44 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
             </div>
           </div>
         )}
+
+        {/* Right Ad Banner */}
+        <div className="hidden lg:flex lg:w-48 xl:w-64 bg-gray-900 border-l border-gray-700 flex-shrink-0">
+          <div className="w-full p-4 flex flex-col space-y-4">
+            {/* Ad Banner 1 */}
+            <div className="bg-gray-800 rounded-lg border border-gray-600 overflow-hidden">
+              <div className="bg-gradient-to-br from-orange-600 to-yellow-600 p-4 text-center">
+                <div className="text-white font-bold text-sm mb-2">Promoted</div>
+                <div className="bg-white bg-opacity-20 rounded-lg p-3">
+                  <div className="text-white text-xs font-medium mb-1">Your Business</div>
+                  <div className="text-white text-xs opacity-75">Advertise here</div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Ad Banner 2 */}
+            <div className="bg-gray-800 rounded-lg border border-gray-600 overflow-hidden">
+              <div className="bg-gradient-to-br from-indigo-600 to-blue-600 p-4 text-center">
+                <div className="text-white font-bold text-sm mb-2">Partnership</div>
+                <div className="bg-white bg-opacity-20 rounded-lg p-3">
+                  <div className="text-white text-xs font-medium mb-1">Collaborate</div>
+                  <div className="text-white text-xs opacity-75">Join our network</div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Ad Banner 3 */}
+            <div className="bg-gray-800 rounded-lg border border-gray-600 overflow-hidden">
+              <div className="bg-gradient-to-br from-purple-600 to-pink-600 p-4 text-center">
+                <div className="text-white font-bold text-sm mb-2">Premium</div>
+                <div className="bg-white bg-opacity-20 rounded-lg p-3">
+                  <div className="text-white text-xs font-medium mb-1">Upgrade Now</div>
+                  <div className="text-white text-xs opacity-75">Ad-free experience</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Bottom Controls */}

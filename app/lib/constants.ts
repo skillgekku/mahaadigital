@@ -1,3 +1,5 @@
+// Updated constants.ts - Change Mahaa USA color scheme to red
+
 import { ChannelConfig } from './types';
 
 // YouTube Video Interface for Mahaa USA
@@ -11,7 +13,7 @@ export interface YouTubeVideo {
   scheduledTime?: string;
 }
 
-// YouTube playlist for Mahaa USA
+// YouTube playlist for Mahaa USA (unchanged)
 export const MAHAA_USA_PLAYLIST: YouTubeVideo[] = [
   {
     id: 'nats-8th-conference',
@@ -119,11 +121,11 @@ export const CHANNELS: ChannelConfig[] = [
     id: 'mahaa-usa',
     name: 'Mahaa USA',
     description: 'US Telugu Content',
-    color: 'green',
-    bgGradient: 'from-green-600 to-green-800',
+    color: 'red', // Changed from 'green' to 'red'
+    bgGradient: 'from-red-600 to-red-800', // Changed from 'from-green-600 to-green-800'
     icon: '🇺🇸',
     isYoutube: true,
-    youtubeVideoId: 'Izd-SLokbPY', // Default to first video in playlist
+    youtubeVideoId: 'Izd-SLokbPY',
     youtubePlaylist: MAHAA_USA_PLAYLIST
   }
 ];

@@ -45,37 +45,37 @@ export default function ChannelsSchedule({ channelIndex = 0, onBack, onPlayVideo
   }, []);
 
   // Channel configurations
-  const channels: ChannelConfig[] = [
-    {
-      name: 'Mahaa News',
-      description: '24×7 News Channel',
-      color: 'blue',
-      bgGradient: 'from-blue-600 to-blue-800',
-      icon: '📺'
-    },
-    {
-      name: 'Mahaa Bhakti',
-      description: '24×7 Devotional',
-      color: 'orange',
-      bgGradient: 'from-orange-600 to-orange-800',
-      icon: '🙏'
-    },
-    {
-      name: 'Mahaa Max',
-      description: 'Unlimited Entertainment',
-      color: 'purple',
-      bgGradient: 'from-purple-600 to-purple-800',
-      icon: '🎬'
-    },
-    {
-      name: 'Mahaa USA',
-      description: 'US Telugu Content',
-      color: 'green',
-      bgGradient: 'from-green-600 to-green-800',
-      icon: '🇺🇸',
-      isYoutube: true
-    }
-  ];
+const channels: ChannelConfig[] = [
+  {
+    name: 'Mahaa News',
+    description: '24×7 News Channel',
+    color: 'blue',
+    bgGradient: 'from-blue-600 to-blue-800',
+    icon: '📺'
+  },
+  {
+    name: 'Mahaa Bhakti',
+    description: '24×7 Devotional',
+    color: 'orange',
+    bgGradient: 'from-orange-600 to-orange-800',
+    icon: '🙏'
+  },
+  {
+    name: 'Mahaa Max',
+    description: 'Unlimited Entertainment',
+    color: 'purple',
+    bgGradient: 'from-purple-600 to-purple-800',
+    icon: '🎬'
+  },
+  {
+    name: 'Mahaa USA',
+    description: 'US Telugu Content',
+    color: 'red',  // Changed from 'green' to 'red'
+    bgGradient: 'from-red-600 to-red-800',  // Changed gradient
+    icon: '🇺🇸',
+    isYoutube: true
+  }
+];
 
   // Convert YouTube playlist to schedule format for Mahaa USA
   const getYouTubeSchedule = (): ScheduleDay[] => {
@@ -433,11 +433,11 @@ export default function ChannelsSchedule({ channelIndex = 0, onBack, onPlayVideo
           <button
             key={index}
             onClick={() => setSelectedDay(index)}
-            className={`px-6 py-3 rounded-lg font-semibold transition-all duration-300 ${
-              selectedDay === index
-                ? `bg-gradient-to-r ${currentChannel.bgGradient} text-white shadow-lg`
-                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-            }`}
+          className={`px-6 py-3 rounded-lg font-semibold transition-all duration-300 ${
+  selectedDay === index
+    ? `bg-gradient-to-r ${currentChannel.bgGradient} text-white shadow-lg`
+    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+}`}
           >
             <div className="text-lg">{day.day}</div>
             <div className="text-sm opacity-75">{day.date}</div>
