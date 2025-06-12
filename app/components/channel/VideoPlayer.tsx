@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, ArrowLeft, AlertCircle, SkipForward, SkipBack, List, Shuffle, Calendar } from 'lucide-react';
 import { ChannelConfig } from '@/app/lib/types';
 import { useTheme } from '@/app/hooks/useTheme';
-import { THEME_CLASSES } from '@/app/lib/constants';
+import { THEME_CLASSES, MAHAA_USA_PLAYLIST } from '@/app/lib/constants';
 
 // YouTube Video Interface
 interface YouTubeVideo {
@@ -35,82 +35,6 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
   const { isDarkMode } = useTheme();
   const theme = THEME_CLASSES[isDarkMode ? 'dark' : 'light'];
   
-  // YouTube playlist for Mahaa USA
-  const [youtubePlaylist] = useState<YouTubeVideo[]>([
-    {
-      id: 'tana-24th-conference',
-      title: 'TANA 24th Conference',
-      description: 'Telugu Association of North America 24th Annual Conference',
-      youtubeId: 'Izd-SLokbPY',
-      duration: '2:45:30',
-      category: 'Conference',
-      scheduledTime: '09:00'
-    },
-    {
-      id: 'tana-youth-conference-2025',
-      title: 'TANA Youth Conference 2025',
-      description: 'Young Telugu professionals gathering and networking event',
-      youtubeId: 'kS9L0lz0EWM',
-      duration: '1:30:45',
-      category: 'Youth Event',
-      scheduledTime: '11:45'
-    },
-    {
-      id: 'ktr-dallas',
-      title: 'KTR in Dallas',
-      description: 'KT Rama Rao visit to Dallas - Political and cultural event',
-      youtubeId: 'wf8tDgoCuX4',
-      duration: '2:15:20',
-      category: 'Political',
-      scheduledTime: '14:00'
-    },
-    {
-      id: 'mahaa-icon',
-      title: 'Mahaa ICON',
-      description: 'Prestigious awards ceremony celebrating Telugu excellence',
-      youtubeId: 'tq6kVYunCTk',
-      duration: '3:20:15',
-      category: 'Awards',
-      scheduledTime: '16:30'
-    },
-    {
-      id: 'kannappa-manchu-vishnu',
-      title: 'Kannappa - Manchu Vishnu in USA',
-      description: 'Actor Manchu Vishnu promotes his upcoming film Kannappa',
-      youtubeId: '3erbr7GN3UI',
-      duration: '1:45:30',
-      category: 'Entertainment',
-      scheduledTime: '20:00'
-    },
-    {
-      id: 'rana-daggubati-loca-loka',
-      title: 'Rana Daggubati - Loca Loka',
-      description: 'Popular actor Rana Daggubati in exclusive interview',
-      youtubeId: '-A_xRPsKSWg',
-      duration: '1:20:45',
-      category: 'Interview',
-      scheduledTime: '22:00'
-    },
-    {
-      id: 'nats-8th-conference',
-      title: 'NATS 8th Conference',
-      description: 'North American Telugu Society annual conference highlights',
-      youtubeId: 'UTArkqpGGCw',
-      duration: '2:00:30',
-      category: 'Conference',
-      scheduledTime: '06:00'
-    },
-    {
-      id: 'miss-telugu-usa-2025',
-      title: 'Miss Telugu USA 2025',
-      description: 'Beauty pageant celebrating Telugu culture in America',
-      youtubeId: 'RcIX4xjTkf0',
-      duration: '2:30:15',
-      category: 'Pageant',
-      scheduledTime: '19:00'
-    }
-  ]);
-
   // Player state
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -124,7 +48,7 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
   const [currentTime, setCurrentTime] = useState(new Date());
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
   
-  // YouTube playlist state
+  // YouTube playlist state (only for Mahaa USA)
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [isShuffled, setIsShuffled] = useState(false);
   const [shuffledPlaylist, setShuffledPlaylist] = useState<YouTubeVideo[]>([]);
@@ -137,10 +61,22 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Initialize shuffled playlist
+  // Check if this is Mahaa USA with YouTube playlist
+  const isUSAPlaylist = channel.id === 'mahaa-usa' && channel.isYoutube;
+
+  // Initialize shuffled playlist for USA channel
   useEffect(() => {
-    setShuffledPlaylist([...youtubePlaylist]);
-  }, []);
+    if (isUSAPlaylist) {
+      setShuffledPlaylist([...MAHAA_USA_PLAYLIST]);
+      // Find current video index based on youtubeVideoId
+      if (channel.youtubeVideoId) {
+        const index = MAHAA_USA_PLAYLIST.findIndex(v => v.youtubeId === channel.youtubeVideoId);
+        if (index !== -1) {
+          setCurrentVideoIndex(index);
+        }
+      }
+    }
+  }, [isUSAPlaylist, channel.youtubeVideoId]);
 
   // Track window size for responsive design
   useEffect(() => {
@@ -176,7 +112,17 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
     }
   }, []);
 
-  // Shuffle playlist function
+  // Load HLS.js dynamically
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !window.Hls) {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/hls.js@latest';
+      script.async = true;
+      document.head.appendChild(script);
+    }
+  }, []);
+
+  // Shuffle functionality (USA only)
   const shuffleArray = (array: YouTubeVideo[]) => {
     const shuffled = [...array];
     for (let i = shuffled.length - 1; i > 0; i--) {
@@ -186,84 +132,56 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
     return shuffled;
   };
 
-  // Toggle shuffle
   const toggleShuffle = () => {
+    if (!isUSAPlaylist) return;
+    
     if (!isShuffled) {
-      const shuffled = shuffleArray(youtubePlaylist);
+      const shuffled = shuffleArray(MAHAA_USA_PLAYLIST);
       setShuffledPlaylist(shuffled);
       setCurrentVideoIndex(0);
     } else {
-      setShuffledPlaylist([...youtubePlaylist]);
+      setShuffledPlaylist([...MAHAA_USA_PLAYLIST]);
       setCurrentVideoIndex(0);
     }
     setIsShuffled(!isShuffled);
   };
 
-  // Get current playlist
+  // Get current playlist (USA only)
   const getCurrentPlaylist = () => {
-    return isShuffled ? shuffledPlaylist : youtubePlaylist;
+    if (!isUSAPlaylist) return [];
+    return isShuffled ? shuffledPlaylist : MAHAA_USA_PLAYLIST;
   };
 
-  // Get current video
+  // Get current video (USA only)
   const getCurrentVideo = () => {
+    if (!isUSAPlaylist) return null;
     const playlist = getCurrentPlaylist();
     return playlist[currentVideoIndex] || playlist[0];
   };
 
-  // Play specific video
-  const playVideo = (videoIndex: number) => {
-    setCurrentVideoIndex(videoIndex);
-    setShowPlaylist(false);
-  };
-
-  // Next video
+  // Next/Previous video (USA only)
   const nextVideo = () => {
+    if (!isUSAPlaylist) return;
     const playlist = getCurrentPlaylist();
     const nextIndex = (currentVideoIndex + 1) % playlist.length;
     setCurrentVideoIndex(nextIndex);
   };
 
-  // Previous video
   const previousVideo = () => {
+    if (!isUSAPlaylist) return;
     const playlist = getCurrentPlaylist();
     const prevIndex = currentVideoIndex === 0 ? playlist.length - 1 : currentVideoIndex - 1;
     setCurrentVideoIndex(prevIndex);
   };
 
-  // Get YouTube embed URL for current video
-  const getYouTubeEmbedUrl = () => {
-    if (!channel.isYoutube) return '';
-    
-    const currentVideo = getCurrentVideo();
-    if (!currentVideo) return '';
-    
-    return `https://www.youtube.com/embed/${currentVideo.youtubeId}?autoplay=1&mute=0&controls=1&rel=0&modestbranding=1&enablejsapi=1`;
+  // Play specific video (USA only)
+  const playVideo = (videoIndex: number) => {
+    if (!isUSAPlaylist) return;
+    setCurrentVideoIndex(videoIndex);
+    setShowPlaylist(false);
   };
 
-  // Get category color
-  const getCategoryColor = (category: string) => {
-    const colors: Record<string, string> = {
-      'Conference': 'bg-blue-600',
-      'Youth Event': 'bg-green-600',
-      'Political': 'bg-red-600',
-      'Awards': 'bg-yellow-600',
-      'Entertainment': 'bg-purple-600',
-      'Interview': 'bg-orange-600',
-      'Pageant': 'bg-pink-600'
-    };
-    return colors[category] || 'bg-gray-600';
-  };
-
-  // Get scheduled videos for today
-  const getScheduledVideos = () => {
-    return youtubePlaylist.map((video, index) => ({
-      ...video,
-      originalIndex: index,
-      isCurrentlyPlaying: getCurrentVideo()?.id === video.id
-    })).sort((a, b) => (a.scheduledTime || '').localeCompare(b.scheduledTime || ''));
-  };
-
-  // Regular HLS initialization for non-YouTube channels
+  // Cleanup function for HLS
   const cleanup = () => {
     if (hlsRef.current) {
       hlsRef.current.destroy();
@@ -276,16 +194,22 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
     }
   };
 
+  // Initialize HLS player
   const initializePlayer = (streamUrl: string) => {
     const video = videoRef.current;
     if (!video) return;
 
     setIsLoading(true);
     setError(null);
+
+    // Clean up any existing instance
     cleanup();
 
+    // Wait for HLS.js to load
     const initHls = () => {
       if (window.Hls && window.Hls.isSupported()) {
+        console.log('HLS.js is supported, initializing...');
+        
         hlsRef.current = new window.Hls({
           debug: false,
           enableWorker: true,
@@ -296,7 +220,13 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
         hlsRef.current.loadSource(streamUrl);
         hlsRef.current.attachMedia(video);
 
+        // HLS events
+        hlsRef.current.on(window.Hls.Events.MEDIA_ATTACHED, () => {
+          console.log('Media attached');
+        });
+
         hlsRef.current.on(window.Hls.Events.MANIFEST_PARSED, () => {
+          console.log('Manifest parsed, starting playback');
           setIsLoading(false);
           video.play().catch(err => {
             console.error('Play failed:', err);
@@ -314,6 +244,8 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
         });
 
       } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        // Native HLS support (Safari)
+        console.log('Using native HLS support');
         video.src = streamUrl;
         
         video.addEventListener('loadedmetadata', () => {
@@ -336,9 +268,11 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
       }
     };
 
+    // Check if HLS.js is already loaded
     if (window.Hls) {
       initHls();
     } else {
+      // Wait for script to load
       const checkHls = setInterval(() => {
         if (window.Hls) {
           clearInterval(checkHls);
@@ -346,6 +280,7 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
         }
       }, 100);
 
+      // Timeout after 5 seconds
       setTimeout(() => {
         clearInterval(checkHls);
         if (!window.Hls) {
@@ -364,6 +299,195 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
       }, 100);
     }
   }, [isOpen, channel]);
+
+  // Get YouTube embed URL
+  const getYouTubeEmbedUrl = () => {
+    if (!channel.isYoutube) return '';
+    
+    let videoId = channel.youtubeVideoId;
+    
+    // For USA playlist, use current video
+    if (isUSAPlaylist) {
+      const currentVideo = getCurrentVideo();
+      if (currentVideo) {
+        videoId = currentVideo.youtubeId;
+      }
+    }
+    
+    if (!videoId) return '';
+    
+    return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0&controls=1&rel=0&modestbranding=1&enablejsapi=1`;
+  };
+
+  // Video event handlers (HLS only)
+  const handleVideoEvents = () => {
+    const video = videoRef.current;
+    if (!video || channel.isYoutube) return;
+
+    video.onplay = () => setIsPlaying(true);
+    video.onpause = () => setIsPlaying(false);
+    video.onvolumechange = () => {
+      setVolume(video.volume);
+      setIsMuted(video.muted);
+    };
+    video.onerror = () => setError('Video playback error occurred');
+  };
+
+  useEffect(() => {
+    handleVideoEvents();
+  }, [channel.isYoutube]);
+
+  // HLS Controls functions
+  const togglePlayPause = () => {
+    if (channel.isYoutube) return;
+    
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (isPlaying) {
+      video.pause();
+    } else {
+      video.play().catch(err => {
+        console.error('Play failed:', err);
+        setError('Failed to play video');
+      });
+    }
+  };
+
+  const toggleMute = () => {
+    if (channel.isYoutube) return;
+    
+    const video = videoRef.current;
+    if (!video) return;
+    
+    video.muted = !video.muted;
+    setIsMuted(video.muted);
+  };
+
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (channel.isYoutube) return;
+    
+    const video = videoRef.current;
+    if (!video) return;
+    
+    const newVolume = parseFloat(e.target.value);
+    video.volume = newVolume;
+    setVolume(newVolume);
+    setIsMuted(newVolume === 0);
+  };
+
+  const toggleFullscreen = () => {
+    if (channel.isYoutube) {
+      setError('Use YouTube player controls for fullscreen');
+      return;
+    }
+    
+    const container = containerRef.current;
+    if (!container) return;
+
+    if (!isFullscreen) {
+      if (container.requestFullscreen) {
+        container.requestFullscreen().catch(console.warn);
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(console.warn);
+      }
+    }
+  };
+
+  const togglePiP = async () => {
+    if (channel.isYoutube) {
+      setError('Picture-in-Picture is not available for YouTube content');
+      return;
+    }
+
+    const video = videoRef.current;
+    if (!video || !isPiPSupported) return;
+
+    try {
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture();
+      } else {
+        await video.requestPictureInPicture();
+      }
+    } catch (error) {
+      console.error('Failed to toggle Picture-in-Picture:', error);
+      setError('Picture-in-Picture not available');
+    }
+  };
+
+  // PiP event handlers (HLS only)
+  useEffect(() => {
+    if (channel.isYoutube) return;
+    
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handleEnterPiP = () => {
+      setIsPiPMode(true);
+      onPiPChange?.(true);
+    };
+
+    const handleLeavePiP = () => {
+      setIsPiPMode(false);
+      onPiPChange?.(false);
+    };
+
+    video.addEventListener('enterpictureinpicture', handleEnterPiP);
+    video.addEventListener('leavepictureinpicture', handleLeavePiP);
+
+    return () => {
+      video.removeEventListener('enterpictureinpicture', handleEnterPiP);
+      video.removeEventListener('leavepictureinpicture', handleLeavePiP);
+    };
+  }, [channel.isYoutube, onPiPChange]);
+
+  // Fullscreen change handler
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!isOpen) return;
+      if (channel.isYoutube) return;
+      
+      switch (e.key) {
+        case 'Escape':
+          if (!document.pictureInPictureElement) {
+            onClose();
+          }
+          break;
+        case ' ':
+          e.preventDefault();
+          togglePlayPause();
+          break;
+        case 'm':
+        case 'M':
+          toggleMute();
+          break;
+        case 'f':
+        case 'F':
+          toggleFullscreen();
+          break;
+        case 'p':
+        case 'P':
+          if (isPiPSupported) {
+            togglePiP();
+          }
+          break;
+      }
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, channel.isYoutube, isPiPSupported]);
 
   // Auto-hide controls
   const resetControlsTimeout = () => {
@@ -398,10 +522,32 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
     onClose();
   };
 
+  // Retry function (HLS only)
+  const handleRetry = () => {
+    setError(null);
+    if (channel.streamUrl && !channel.isYoutube) {
+      initializePlayer(channel.streamUrl);
+    }
+  };
+
+  // Get category color (USA only)
+  const getCategoryColor = (category: string) => {
+    const colors: Record<string, string> = {
+      'Conference': 'bg-blue-600',
+      'Youth Event': 'bg-green-600',
+      'Political': 'bg-red-600',
+      'Awards': 'bg-yellow-600',
+      'Entertainment': 'bg-purple-600',
+      'Interview': 'bg-orange-600',
+      'Pageant': 'bg-pink-600'
+    };
+    return colors[category] || 'bg-gray-600';
+  };
+
   // Calculate responsive dimensions
   const isMobile = windowSize.width < 768;
   const topBarHeight = isMobile ? '60px' : '80px';
-  const bottomControlsHeight = isMobile ? '80px' : '100px';
+  const bottomControlsHeight = channel.isYoutube ? '60px' : (isMobile ? '80px' : '100px');
 
   if (!isOpen) return null;
 
@@ -423,17 +569,20 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
       >
         <div className="flex-1 min-w-0">
           <h3 className="text-lg md:text-xl font-bold truncate">
-            {channel.isYoutube && channel.id === 'mahaa-usa' ? getCurrentVideo()?.title : channel.name}
+            {isUSAPlaylist && getCurrentVideo() ? getCurrentVideo()!.title : channel.name}
           </h3>
           <div className="flex items-center space-x-2 overflow-hidden">
             <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shrink-0"></div>
             <span className="text-red-400 text-xs md:text-sm shrink-0">
-              {channel.isYoutube ? 'YOUTUBE PLAYLIST' : 'LIVE'}
+              {isUSAPlaylist ? 'YOUTUBE PLAYLIST' : (channel.isYoutube ? 'YOUTUBE' : 'LIVE')}
             </span>
-            {channel.isYoutube && channel.id === 'mahaa-usa' && (
+            {isUSAPlaylist && (
               <span className="text-gray-400 text-xs md:text-sm truncate">
                 • Video {currentVideoIndex + 1} of {getCurrentPlaylist().length}
               </span>
+            )}
+            {isPiPMode && !channel.isYoutube && (
+              <span className="text-blue-400 text-xs md:text-sm shrink-0">• PiP Active</span>
             )}
             <span className="text-gray-400 text-xs md:text-sm truncate">
               • {currentTime.toLocaleTimeString('en-US', { 
@@ -445,7 +594,7 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
           </div>
         </div>
         <div className="flex items-center space-x-1 md:space-x-3 shrink-0 ml-2">
-          {channel.isYoutube && channel.id === 'mahaa-usa' && (
+          {isUSAPlaylist && (
             <>
               <button
                 onClick={() => setShowSchedule(!showSchedule)}
@@ -462,6 +611,15 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
                 <List className="w-4 h-4 md:w-5 md:h-5" />
               </button>
             </>
+          )}
+          {isPiPSupported && !channel.isYoutube && (
+            <button
+              onClick={togglePiP}
+              className="text-white hover:text-blue-400 transition-colors p-1.5 md:p-2 rounded-lg hover:bg-white hover:bg-opacity-10"
+              title="Picture-in-Picture (P)"
+            >
+              <Minimize className="w-4 h-4 md:w-5 md:h-5" />
+            </button>
           )}
           <button
             onClick={handleClose}
@@ -484,16 +642,16 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
         }}
       >
         {/* Main Video Area */}
-        <div className={`${(showPlaylist || showSchedule) ? 'w-2/3' : 'w-full'} transition-all duration-300`}>
+        <div className={`${(showPlaylist || showSchedule) && isUSAPlaylist ? 'w-2/3' : 'w-full'} transition-all duration-300`}>
           {/* YouTube Content */}
           {channel.isYoutube && (
             <div className="w-full h-full flex items-center justify-center">
               <iframe
-                key={getCurrentVideo()?.youtubeId}
+                key={isUSAPlaylist ? getCurrentVideo()?.youtubeId : channel.youtubeVideoId}
                 width="100%"
                 height="100%"
                 src={getYouTubeEmbedUrl()}
-                title={`${getCurrentVideo()?.title || channel.name} YouTube Stream`}
+                title={`${isUSAPlaylist ? getCurrentVideo()?.title : channel.name} YouTube Stream`}
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
@@ -510,30 +668,49 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
           {/* Regular HLS Content */}
           {!channel.isYoutube && (
             <>
+              {/* Loading */}
               {isLoading && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black z-20">
                   <div className="text-center px-4">
                     <div className="animate-spin rounded-full h-12 w-12 md:h-16 md:w-16 border-b-2 border-red-500 mx-auto mb-4"></div>
                     <p className="text-white text-base md:text-lg">Loading {channel.name}...</p>
+                    <p className="text-gray-400 text-sm mt-2">Connecting to stream...</p>
                   </div>
                 </div>
               )}
 
+              {/* Error */}
               {error && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black z-20 p-4">
                   <div className="text-center bg-gray-800 p-4 md:p-8 rounded-lg border border-red-500 max-w-md w-full">
                     <AlertCircle className="w-8 h-8 md:w-12 md:h-12 text-red-500 mx-auto mb-4" />
                     <p className="text-white text-lg md:text-xl mb-4">Playback Error</p>
                     <p className="text-gray-300 mb-6 text-sm md:text-base">{error}</p>
+                    <div className="space-y-3">
+                      <button 
+                        onClick={handleRetry}
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 md:px-6 py-2 md:py-3 rounded-lg transition-colors text-sm md:text-base"
+                      >
+                        Retry
+                      </button>
+                      <button 
+                        onClick={handleClose}
+                        className="w-full bg-red-600 hover:bg-red-700 text-white px-4 md:px-6 py-2 md:py-3 rounded-lg transition-colors text-sm md:text-base"
+                      >
+                        Close Player
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
 
+              {/* Video Element */}
               <video
                 ref={videoRef}
                 className="w-full h-full object-contain max-w-full max-h-full"
                 controls={false}
                 playsInline
+                onError={() => setError('Video playback error occurred')}
                 style={{
                   display: 'block',
                   margin: '0 auto'
@@ -543,8 +720,8 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
           )}
         </div>
 
-        {/* Playlist Sidebar */}
-        {(showPlaylist || showSchedule) && channel.isYoutube && channel.id === 'mahaa-usa' && (
+        {/* Playlist Sidebar (USA only) */}
+        {(showPlaylist || showSchedule) && isUSAPlaylist && (
           <div className="w-1/3 bg-gray-900 bg-opacity-95 overflow-hidden border-l border-gray-700">
             <div className="h-full flex flex-col">
               {/* Sidebar Header */}
@@ -578,107 +755,62 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
 
               {/* Video List */}
               <div className="flex-1 overflow-y-auto">
-                {showSchedule ? (
-                  <div className="p-4 space-y-3">
-                    {getScheduledVideos().map((video, index) => (
-                      <div
-                        key={video.id}
-                        onClick={() => playVideo(video.originalIndex)}
-                        className={`p-3 rounded-lg cursor-pointer transition-all duration-200 ${
-                          video.isCurrentlyPlaying
-                            ? 'bg-green-600 border border-green-400'
-                            : 'bg-gray-800 hover:bg-gray-700 border border-transparent'
-                        }`}
-                      >
-                        <div className="flex items-start space-x-3">
-                          <div className="flex-shrink-0">
-                            <div className={`text-xs px-2 py-1 rounded ${
-                              video.isCurrentlyPlaying ? 'bg-green-400 text-green-900' : 'bg-gray-600 text-white'
-                            }`}>
-                              {video.scheduledTime}
-                            </div>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="text-white text-sm font-semibold mb-1 line-clamp-2">
-                              {video.title}
-                            </h4>
-                            <div className="flex items-center space-x-2 mb-1">
-                              <span className={`text-xs px-2 py-1 rounded text-white ${getCategoryColor(video.category)}`}>
-                                {video.category}
-                              </span>
-                              <span className="text-xs text-gray-400">{video.duration}</span>
-                            </div>
-                            <p className="text-xs text-gray-400 line-clamp-2">
-                              {video.description}
-                            </p>
-                            {video.isCurrentlyPlaying && (
-                              <div className="flex items-center space-x-1 mt-2">
-                                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                                <span className="text-xs text-green-400 font-medium">NOW PLAYING</span>
-                              </div>
-                            )}
+                <div className="p-4 space-y-3">
+                  {getCurrentPlaylist().map((video, index) => (
+                    <div
+                      key={video.id}
+                      onClick={() => playVideo(index)}
+                      className={`p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                        index === currentVideoIndex
+                          ? 'bg-blue-600 border border-blue-400'
+                          : 'bg-gray-800 hover:bg-gray-700 border border-transparent'
+                      }`}
+                    >
+                      <div className="flex items-start space-x-3">
+                        <div className="flex-shrink-0">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                            index === currentVideoIndex ? 'bg-blue-400 text-blue-900' : 'bg-gray-600 text-white'
+                          }`}>
+                            {index + 1}
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="p-4 space-y-3">
-                    {getCurrentPlaylist().map((video, index) => (
-                      <div
-                        key={video.id}
-                        onClick={() => playVideo(index)}
-                        className={`p-3 rounded-lg cursor-pointer transition-all duration-200 ${
-                          index === currentVideoIndex
-                            ? 'bg-blue-600 border border-blue-400'
-                            : 'bg-gray-800 hover:bg-gray-700 border border-transparent'
-                        }`}
-                      >
-                        <div className="flex items-start space-x-3">
-                          <div className="flex-shrink-0">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                              index === currentVideoIndex ? 'bg-blue-400 text-blue-900' : 'bg-gray-600 text-white'
-                            }`}>
-                              {index + 1}
-                            </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-white text-sm font-semibold mb-1 line-clamp-2">
+                            {video.title}
+                          </h4>
+                          <div className="flex items-center space-x-2 mb-1">
+                            <span className={`text-xs px-2 py-1 rounded text-white ${getCategoryColor(video.category)}`}>
+                              {video.category}
+                            </span>
+                            <span className="text-xs text-gray-400">{video.duration}</span>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="text-white text-sm font-semibold mb-1 line-clamp-2">
-                              {video.title}
-                            </h4>
-                            <div className="flex items-center space-x-2 mb-1">
-                              <span className={`text-xs px-2 py-1 rounded text-white ${getCategoryColor(video.category)}`}>
-                                {video.category}
-                              </span>
-                              <span className="text-xs text-gray-400">{video.duration}</span>
+                          <p className="text-xs text-gray-400 line-clamp-2">
+                            {video.description}
+                          </p>
+                          {index === currentVideoIndex && (
+                            <div className="flex items-center space-x-1 mt-2">
+                              <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                              <span className="text-xs text-blue-400 font-medium">NOW PLAYING</span>
                             </div>
-                            <p className="text-xs text-gray-400 line-clamp-2">
-                              {video.description}
-                            </p>
-                            {index === currentVideoIndex && (
-                              <div className="flex items-center space-x-1 mt-2">
-                                <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-                                <span className="text-xs text-blue-400 font-medium">NOW PLAYING</span>
-                              </div>
-                            )}
-                          </div>
+                          )}
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* Bottom Controls - Enhanced for YouTube playlist */}
+      {/* Bottom Controls */}
       <div 
         className={`px-3 md:px-4 py-2 md:py-4 bg-black bg-opacity-70 text-white transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'} shrink-0`}
         style={{ height: bottomControlsHeight }}
       >
-        {channel.isYoutube && channel.id === 'mahaa-usa' ? (
+        {isUSAPlaylist ? (
+          // YouTube Playlist Controls
           <div className="flex items-center justify-between h-full">
             <div className="flex items-center space-x-2 md:space-x-4 flex-1 min-w-0">
               <button
@@ -728,12 +860,17 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
               </button>
             </div>
           </div>
+        ) : channel.isYoutube ? (
+          // Regular YouTube Controls
+          <div className="text-center text-gray-400 text-xs md:text-sm flex items-center justify-center h-full">
+            Use YouTube player controls for playback, volume, and fullscreen options
+          </div>
         ) : (
-          // Regular HLS controls
+          // HLS Controls
           <div className="flex items-center justify-between h-full">
             <div className="flex items-center space-x-2 md:space-x-4 flex-1 min-w-0">
               <button
-                onClick={() => {/* togglePlayPause for HLS */}}
+                onClick={togglePlayPause}
                 className="text-white hover:text-red-400 transition-colors p-1.5 md:p-2 rounded-lg hover:bg-white hover:bg-opacity-10 shrink-0"
                 disabled={isLoading || !!error}
                 title="Play/Pause (Space)"
@@ -742,7 +879,7 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
               </button>
               
               <button
-                onClick={() => {/* toggleMute for HLS */}}
+                onClick={toggleMute}
                 className="text-white hover:text-red-400 transition-colors p-1.5 md:p-2 rounded-lg hover:bg-white hover:bg-opacity-10 shrink-0"
                 disabled={isLoading || !!error}
                 title="Mute/Unmute (M)"
@@ -757,7 +894,7 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
                   max="1"
                   step="0.1"
                   value={isMuted ? 0 : volume}
-                  onChange={() => {/* handleVolumeChange for HLS */}}
+                  onChange={handleVolumeChange}
                   className="flex-1 accent-red-500 min-w-0"
                   disabled={isLoading || !!error}
                 />
@@ -770,7 +907,7 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
             <div className="flex items-center space-x-1 md:space-x-4 shrink-0 ml-2">
               {isPiPSupported && (
                 <button
-                  onClick={() => {/* togglePiP for HLS */}}
+                  onClick={togglePiP}
                   className={`hover:text-blue-400 transition-colors p-1.5 md:p-2 rounded-lg hover:bg-white hover:bg-opacity-10 ${isPiPMode ? 'text-blue-400' : 'text-white'}`}
                   disabled={isLoading || !!error}
                   title="Picture-in-Picture (P)"
@@ -779,7 +916,7 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
                 </button>
               )}
               <button
-                onClick={() => {/* toggleFullscreen for HLS */}}
+                onClick={toggleFullscreen}
                 className="text-white hover:text-red-400 transition-colors p-1.5 md:p-2 rounded-lg hover:bg-white hover:bg-opacity-10"
                 disabled={isLoading || !!error}
                 title="Fullscreen (F)"
@@ -791,9 +928,11 @@ export default function VideoPlayer({ channel, isOpen, onClose, onPiPChange }: V
         )}
         
         <div className="mt-1 md:mt-2 text-gray-400 text-xs hidden md:block">
-          {channel.isYoutube && channel.id === 'mahaa-usa' 
+          {isUSAPlaylist 
             ? 'Use YouTube player controls for playback • Previous/Next: Skip videos • Shuffle: Randomize playlist'
-            : 'Space: Play/Pause • M: Mute • F: Fullscreen • P: Picture-in-Picture • Esc: Exit'
+            : channel.isYoutube 
+              ? 'Use YouTube player controls for playback, volume, and fullscreen options'
+              : 'Space: Play/Pause • M: Mute • F: Fullscreen • P: Picture-in-Picture • Esc: Exit'
           }
         </div>
       </div>
