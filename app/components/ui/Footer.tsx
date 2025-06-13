@@ -79,37 +79,12 @@ export default function Footer() {
               </button>
             </div>
             <div className="text-xs opacity-75">
-              <p>📧 info@mahaadigital.com</p>
-              <p>📞 +1 (555) 123-4567</p>
+              <p>📧coo@mahaanews.org</p>
             </div>
           </div>
         </div>
 
-        {/* Channels List */}
-{/*         <div className="border-t border-gray-700 pt-6 mb-6">
-          <div className="text-center">
-            <h4 className="text-sm font-semibold text-white mb-3">Our Channels</h4>
-            <div className="flex flex-wrap justify-center items-center gap-4">
-              <div className="flex items-center space-x-2 bg-blue-600 bg-opacity-20 px-3 py-1 rounded-full">
-                <span className="text-xs">📺</span>
-                <span className="text-xs font-medium">Mahaa News</span>
-              </div>
-              <div className="flex items-center space-x-2 bg-orange-600 bg-opacity-20 px-3 py-1 rounded-full">
-                <span className="text-xs">🙏</span>
-                <span className="text-xs font-medium">Mahaa Bhakti</span>
-              </div>
-              <div className="flex items-center space-x-2 bg-purple-600 bg-opacity-20 px-3 py-1 rounded-full">
-                <span className="text-xs">🎬</span>
-                <span className="text-xs font-medium">Mahaa Max</span>
-              </div>
-              <div className="flex items-center space-x-2 bg-green-600 bg-opacity-20 px-3 py-1 rounded-full">
-                <span className="text-xs">🇺🇸</span>
-                <span className="text-xs font-medium">Mahaa USA</span>
-              </div>
-            </div>
-          </div>
-        </div>
- */}
+
 
 
         {/* Copyright */}
