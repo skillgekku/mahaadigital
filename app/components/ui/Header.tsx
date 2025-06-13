@@ -11,7 +11,7 @@ export default function Header({ onScheduleClick, isPiPActive }: HeaderProps) {
   const { isDarkMode, toggleTheme } = useTheme();
 
   return (
-    <nav className="text-white py-6 px-8 shadow-2xl" style={{
+    <nav className="text-white py-2 px-8 shadow-2xl" style={{
       background: 'linear-gradient(to right, #ee0979, #ff6a00)'
     }}>
       <div className="container mx-auto flex items-center justify-between">

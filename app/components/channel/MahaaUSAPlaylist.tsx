@@ -33,6 +33,19 @@ export default function MahaaUSAPlaylist({ onBack, onPlayVideo }: MahaaUSAPlayli
     return () => clearInterval(timer);
   }, []);
 
+  // Function to get YouTube thumbnail URL
+  const getYouTubeThumbnail = (videoId: string, quality: 'default' | 'medium' | 'high' | 'standard' | 'maxres' = 'medium') => {
+    const baseUrl = 'https://img.youtube.com/vi';
+    const qualityMap = {
+      'default': 'default.jpg',
+      'medium': 'mqdefault.jpg',
+      'high': 'hqdefault.jpg',
+      'standard': 'sddefault.jpg',
+      'maxres': 'maxresdefault.jpg'
+    };
+    return `${baseUrl}/${videoId}/${qualityMap[quality]}`;
+  };
+
   // Shuffle functionality
   const shuffleArray = (array: YouTubeVideo[]) => {
     const shuffled = [...array];
@@ -217,9 +230,35 @@ export default function MahaaUSAPlaylist({ onBack, onPlayVideo }: MahaaUSAPlayli
       <div className="container mx-auto px-6 py-8">
         {/* Currently Playing Section */}
         {currentVideo && viewMode === 'schedule' && (
-          <div className="bg-gradient-to-r from-red-600 to-red-800 rounded-xl p-6 mb-8 text-white">
-            <div className="flex items-center justify-between">
+          <div className="bg-gradient-to-r from-red-600 to-red-800 rounded-xl p-6 mb-8 text-white overflow-hidden relative">
+            {/* Background thumbnail with overlay */}
+            <div 
+              className="absolute inset-0 opacity-20"
+              style={{
+                backgroundImage: `url(${getYouTubeThumbnail(currentVideo.youtubeId, 'high')})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat'
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-red-600/90 to-red-800/90" />
+            
+            <div className="relative z-10 flex items-center justify-between">
               <div className="flex items-center space-x-4">
+                {/* Video thumbnail */}
+                <div className="flex-shrink-0">
+                  <img
+                    src={getYouTubeThumbnail(currentVideo.youtubeId, 'medium')}
+                    alt={currentVideo.title}
+                    className="w-32 h-24 rounded-lg object-cover border-2 border-white/20"
+                    onError={(e) => {
+                      // Fallback if thumbnail fails to load
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                    }}
+                  />
+                </div>
+                
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 rounded-full bg-yellow-400 animate-pulse"></div>
                   <span className="text-red-300 font-semibold">NOW SCHEDULED</span>
@@ -278,6 +317,30 @@ export default function MahaaUSAPlaylist({ onBack, onPlayVideo }: MahaaUSAPlayli
                       <div className={`text-xs ${theme.description}`}>
                         {video.duration}
                       </div>
+                    </div>
+                    
+                    {/* Video thumbnail in schedule view */}
+                    <div className="flex-shrink-0">
+                      <img
+                        src={getYouTubeThumbnail(video.youtubeId, 'medium')}
+                        alt={video.title}
+                        className="w-20 h-15 rounded-lg object-cover"
+                        onError={(e) => {
+                          // Fallback to YouTube icon if thumbnail fails
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          const parent = target.parentElement;
+                          if (parent) {
+                            parent.innerHTML = `
+                              <div class="w-20 h-15 rounded-lg bg-gray-800 flex items-center justify-center">
+                                <svg class="w-8 h-8 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                                </svg>
+                              </div>
+                            `;
+                          }
+                        }}
+                      />
                     </div>
                     
                     <div className="flex-1 min-w-0">
@@ -341,12 +404,36 @@ export default function MahaaUSAPlaylist({ onBack, onPlayVideo }: MahaaUSAPlayli
                   className={`${theme.card} rounded-xl overflow-hidden border transition-all duration-300 hover:shadow-lg cursor-pointer hover:border-red-300 transform hover:scale-105`}
                   onClick={() => onPlayVideo(video.youtubeId)}
                 >
-                  {/* Video Thumbnail Placeholder */}
-                  <div className="relative bg-gradient-to-br from-gray-800 to-gray-900 h-48 flex items-center justify-center">
-                    <div className="text-center text-white">
-                      <Youtube className="w-12 h-12 mx-auto mb-2 text-red-500" />
-                      <div className="text-sm opacity-75">{video.duration}</div>
-                    </div>
+                  {/* YouTube Video Thumbnail */}
+                  <div className="relative h-48 overflow-hidden">
+                    <img
+                      src={getYouTubeThumbnail(video.youtubeId, 'high')}
+                      alt={video.title}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // Fallback to gradient background if thumbnail fails
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        const parent = target.parentElement;
+                        if (parent) {
+                          const fallback = document.createElement('div');
+                          fallback.className = 'w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center';
+                          fallback.innerHTML = `
+                            <div class="text-center text-white">
+                              <div class="w-12 h-12 mx-auto mb-2">
+                                <svg class="w-full h-full text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                                </svg>
+                              </div>
+                              <div class="text-sm opacity-75">${video.duration}</div>
+                            </div>
+                          `;
+                          parent.appendChild(fallback);
+                        }
+                      }}
+                    />
+                    
+                    {/* Overlay elements */}
                     <div className="absolute top-3 right-3">
                       <span className={`px-2 py-1 rounded text-xs text-white ${getCategoryColor(video.category)}`}>
                         {video.category}
@@ -354,6 +441,9 @@ export default function MahaaUSAPlaylist({ onBack, onPlayVideo }: MahaaUSAPlayli
                     </div>
                     <div className="absolute bottom-3 left-3 bg-black bg-opacity-70 text-white px-2 py-1 rounded text-xs">
                       {video.scheduledTime}
+                    </div>
+                    <div className="absolute bottom-3 right-3 bg-black bg-opacity-70 text-white px-2 py-1 rounded text-xs">
+                      {video.duration}
                     </div>
                     <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                       <Play className="w-16 h-16 text-white" />
