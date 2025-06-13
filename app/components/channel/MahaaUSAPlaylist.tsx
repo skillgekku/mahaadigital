@@ -15,7 +15,7 @@ export default function MahaaUSAPlaylist({ onBack, onPlayVideo }: MahaaUSAPlayli
   const { isDarkMode } = useTheme();
   const theme = THEME_CLASSES[isDarkMode ? 'dark' : 'light'];
   
-  const [viewMode, setViewMode] = useState<'schedule' | 'playlist'>('schedule');
+  const [viewMode, setViewMode] = useState<'schedule' | 'playlist'>('playlist');
   const [shuffledPlaylist, setShuffledPlaylist] = useState<YouTubeVideo[]>([]);
   const [isShuffled, setIsShuffled] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
