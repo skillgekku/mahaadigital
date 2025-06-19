@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { Play, Clock, Calendar, Star, ArrowLeft, Youtube, Shuffle, List, Grid } from 'lucide-react';
-import { MAHAA_USA_PLAYLIST, YouTubeVideo } from '@/app/lib/constants';
+import { MAHAA_USA_PLAYLIST } from '@/app/lib/constants';
+import type { YouTubeVideo } from '@/app/lib/types'; // Corrected import for YouTubeVideo
 import { useTheme } from '@/app/hooks/useTheme';
 import { THEME_CLASSES } from '@/app/lib/constants';
 
@@ -303,7 +304,7 @@ export default function MahaaUSAPlaylist({ onBack, onPlayVideo }: MahaaUSAPlayli
             <>
               <h2 className={`text-xl sm:text-2xl font-bold ${theme.title} mb-4 sm:mb-6 flex items-center space-x-2`}>
                 <Clock className="w-5 h-5 sm:w-6 sm:h-6" />
-                <span>Today's Schedule</span>
+                <span>Today&apos;s Schedule</span>
               </h2>
               {getScheduledVideos().map((video, index) => (
                 <div
