@@ -53,7 +53,7 @@ export const MAHAA_USA_PLAYLIST: YouTubeVideo[] = [
     id: 'miss-telugu-usa-2025',
     title: 'Miss Telugu USA 2025',
     description: 'Beauty pageant celebrating Telugu culture and heritage in America',
-    youtubeId: 'InVguI9nIW4&t=322s',
+    youtubeId: 'InVguI9nIW4',
     duration: '2:30:15',
     category: 'Pageant',
     scheduledTime: '19:00'
