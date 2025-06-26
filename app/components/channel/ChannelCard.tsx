@@ -1,5 +1,6 @@
 'use client';
 
+import React, { memo } from 'react'; // Added memo
 import Image from 'next/image';
 import { ChannelConfig } from '@/app/lib/types';
 import { useTheme } from '@/app/hooks/useTheme';
@@ -13,7 +14,8 @@ interface ChannelCardProps {
   onSchedule: (channelIndex: number) => void;
 }
 
-export default function ChannelCard({ channel, index, onPlay, onSchedule }: ChannelCardProps) {
+// Wrapped with React.memo
+const ChannelCardComponent = ({ channel, index, onPlay, onSchedule }: ChannelCardProps) => {
   const { isDarkMode } = useTheme();
   const theme = THEME_CLASSES[isDarkMode ? 'dark' : 'light'];
 
@@ -124,4 +126,6 @@ export default function ChannelCard({ channel, index, onPlay, onSchedule }: Chan
       </div>
     </div>
   );
-}
+};
+
+export default memo(ChannelCardComponent);
