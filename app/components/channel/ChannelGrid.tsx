@@ -9,7 +9,7 @@ interface ChannelGridProps {
   onSchedule: (channelIndex: number) => void;
 }
 
-export default function ChannelGrid({ onPlay, onSchedule }: ChannelGridProps) {
+export default function ChannelGrid({ onPlay, onSchedule }: Readonly<ChannelGridProps>) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
       {CHANNELS.map((channel, index) => (

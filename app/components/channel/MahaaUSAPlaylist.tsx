@@ -11,7 +11,7 @@ interface MahaaUSAPlaylistProps {
   onPlayVideo: (videoId: string) => void;
 }
 
-export default function MahaaUSAPlaylist({ onBack, onPlayVideo }: MahaaUSAPlaylistProps) {
+export default function MahaaUSAPlaylist({ onBack, onPlayVideo }: Readonly<MahaaUSAPlaylistProps>) {
   const { isDarkMode } = useTheme();
   const theme = THEME_CLASSES[isDarkMode ? 'dark' : 'light'];
   
@@ -133,9 +133,9 @@ export default function MahaaUSAPlaylist({ onBack, onPlayVideo }: MahaaUSAPlayli
             <div className="flex items-center space-x-3 sm:space-x-4">
               <button
                 onClick={onBack}
-                className="p-2 rounded-lg bg-white bg-opacity-10 hover:bg-opacity-20 transition-colors touch-target"
+                className="p-2 rounded-lg bg-black bg-opacity-10 hover:bg-opacity-20 transition-colors touch-target"
               >
-                <ArrowLeft className="w-5 h-5" />
+                <ArrowLeft className="w-5 h-5 "  />
               </button>
               <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
                 <img
@@ -309,7 +309,7 @@ export default function MahaaUSAPlaylist({ onBack, onPlayVideo }: MahaaUSAPlayli
                 <div
                   key={video.id}
                   className={`${theme.card} rounded-xl p-4 sm:p-6 border transition-all duration-300 hover:shadow-lg cursor-pointer touch-target ${
-                    video.isCurrentlyPlaying ? 'border-red-500 bg-red-50 dark:bg-red-900/20' : 'hover:border-red-300'
+                    video.isCurrentlyPlaying ? 'border-red-500  dark:bg-red-900/20' : 'hover:border-red-300'
                   }`}
                   onClick={() => onPlayVideo(video.youtubeId)}
                 >
