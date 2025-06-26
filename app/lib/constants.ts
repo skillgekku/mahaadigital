@@ -112,7 +112,7 @@ export const CHANNELS: ChannelConfig[] = [
     description: 'US Telugu Content',
     color: 'red', // Changed from 'green' to 'red'
     bgGradient: 'from-red-600 to-red-800', // Changed from 'from-green-600 to-green-800'
-    icon: '🇺🇸',
+    icon: '📺',
     isYoutube: true,
     youtubeVideoId: 'Izd-SLokbPY',
     youtubePlaylist: MAHAA_USA_PLAYLIST
